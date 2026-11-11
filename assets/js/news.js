@@ -295,12 +295,14 @@
             // Если YouTube не отдал превью нужного размера, он возвращает
             // серую заглушку 120x90 (с HTTP-кодом 200, поэтому событие error
             // не срабатывает). Такую картинку считаем неудачной и идём дальше
-            // по списку резервных вариантов.
+            // по списку резервных вариантов. Пропускаем сразу все заглушки
+            // подряд — таких вариантов может выпасть не один.
             if (w <= 120 || h <= 90) {
-                var next = parseInt(img.dataset.fb, 10) + 1;
-                if (next < THUMB_FALLBACKS.length) {
-                    img.dataset.fb = String(next);
-                    img.src = 'https://i.ytimg.com/vi/' + img.dataset.vid + '/' + THUMB_FALLBACKS[next] + '.jpg';
+                var idx = parseInt(img.dataset.fb, 10);
+                while (++idx < THUMB_FALLBACKS.length) {
+                    img.dataset.fb = String(idx);
+                    img.src = 'https://i.ytimg.com/vi/' + img.dataset.vid + '/' + THUMB_FALLBACKS[idx] + '.jpg';
+                    if (THUMB_FALLBACKS[idx] === 'maxresdefault' || THUMB_FALLBACKS[idx] === 'hqdefault') break;
                 }
                 return;
             }
