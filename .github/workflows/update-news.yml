@@ -1,0 +1,82 @@
+# ============================================================================
+#  LUMISTEK — АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ НОВОСТЕЙ
+# ============================================================================
+#
+#  Что делает этот файл:
+#    Раз в сутки GitHub сам запускает скрипт scripts/fetch-news.mjs,
+#    тот забирает свежие видео с YouTube и обновляет файл news.json.
+#
+#  Клиенту обычно ничего делать не нужно. Если хочется обновить прямо
+#  сейчас: вкладка Actions → «Update news» → кнопка «Run workflow».
+#
+#  Важно: здесь нет паролей и токенов. GitHub Actions сам выдаёт
+#  временный токен через permissions: contents: write.
+# ============================================================================
+
+name: Update news
+
+on:
+  # Расписание. Время указывается в UTC, не по Москве.
+  # 03:00 UTC — это 06:00 по Москве (летом 06:00, зимой тоже 06:00).
+  # Поменять время: 0 3 * * *  →  минуты(0-59) часы UTC(0-23) * * *
+  schedule:
+    - cron: '0 3 * * *'
+
+  # Позволяет запустить обновление кнопкой из интерфейса GitHub.
+  workflow_dispatch:
+
+# Права на запись в репозиторий — нужны, чтобы закоммитить news.json.
+permissions:
+  contents: write
+
+# Если предыдущий запуск ещё не закончился, второй не начинать.
+concurrency:
+  group: update-news
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Загрузить видео с YouTube
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Получить код репозитория
+        uses: actions/checkout@v4
+
+      - name: Подготовить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Загрузить ленту и обновить news.json
+        run: node scripts/fetch-news.mjs
+
+      - name: Проверить, что news.json не пустой
+        run: |
+          if [ ! -s news.json ]; then
+            echo "::error::Файл news.json пустой или не создан"
+            exit 1
+          fi
+          node -e "
+            const data = require('./news.json');
+            const count = Array.isArray(data.videos) ? data.videos.length : 0;
+            if (!count) {
+              console.error('::error::В news.json нет ни одного видео');
+              process.exit(1);
+            }
+            console.log('Видео в news.json: ' + count);
+          "
+
+      - name: Закоммитить изменения
+        run: |
+          # Если файл не изменился, дальше не идём — нечего коммитить.
+          if [ -z "$(git status --porcelain news.json)" ]; then
+            echo "news.json не изменился — коммит не нужен"
+            exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add news.json
+          git commit -m "Обновление новостей с YouTube ($(date -u +%Y-%m-%d))"
+          git push
