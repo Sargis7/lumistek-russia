@@ -641,7 +641,7 @@
         L.push('            image: ' + q(p.image) + ',');
         L.push('            badge: ' + q(p.badge || 'brand-cyan') + ',');
         L.push('            popular: ' + (p.popular ? 'true' : 'false') + ',');
-        L.push('            description: ' + q(p.description) + ',');
+        L.push('            hidden: ' + (p.hidden ? 'true' : 'false') + ',');        L.push('            description: ' + q(p.description) + ',');
         L.push('            units: [');
 
         units.forEach(function (u, i) {
@@ -1702,11 +1702,15 @@
                 ? '<span class="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-brand-pink/20 text-brand-pink">Хит</span>'
                 : '';
 
+            var hidden = p.hidden
+                ? '<span class="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-gray-400">Скрыт</span>'
+                : '';
+
             return '' +
                 '<tr class="border-t border-white/10 hover:bg-white/[0.03]">' +
                     '<td class="py-3 pr-3">' + img + '</td>' +
                     '<td class="py-3 pr-3">' +
-                        '<div class="font-medium text-white">' + esc(p.name) + popular + '</div>' +
+                        '<div class="font-medium text-white">' + esc(p.name) + popular + hidden + '</div>' +
                         '<div class="text-xs text-gray-500">' + esc(p.subtitle) + '</div>' +
                         '<div class="text-[11px] text-gray-600 font-mono">' + esc(p.id) + '</div>' +
                     '</td>' +
@@ -1743,6 +1747,7 @@
             image: '',
             badge: 'brand-cyan',
             popular: false,
+            hidden: false,
             description: '',
             units: [{ key: 'unit-1', label: '', price: 0, note: '' }],
             spec: []
@@ -1756,6 +1761,7 @@
         setValue('#prod-subtitle', p.subtitle || '');
         setValue('#prod-description', p.description || '');
         setChecked('#prod-popular', !!p.popular);
+        setChecked('#prod-hidden', !!p.hidden);
 
         var pathLabel = $('#prod-image-path');
         if (pathLabel) pathLabel.textContent = p.image || 'файл не выбран';
@@ -1922,6 +1928,7 @@
                 image: (state.editing && state.editing.image) || '',
                 badge: fieldValue('#prod-badge') || 'brand-cyan',
                 popular: !!($('#prod-popular') && $('#prod-popular').checked),
+                hidden: !!($('#prod-hidden') && $('#prod-hidden').checked),
                 description: fieldValue('#prod-description'),
                 units: units,
                 spec: spec

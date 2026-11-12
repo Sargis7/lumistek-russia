@@ -218,12 +218,14 @@
 
     /**
      * Достаёт массив товаров из window.LUMISTEK_CATALOG.
+     * Товары со скрытым флагом (hidden: true) не отдаём — их нет на сайте,
+     * значит и в корзину они попасть не должны.
      * @return {Array}
      */
     function allProducts() {
         var cat = window.LUMISTEK_CATALOG;
         if (!cat || !cat.products) return [];
-        return cat.products;
+        return cat.products.filter(function (p) { return !p.hidden; });
     }
 
     /**
