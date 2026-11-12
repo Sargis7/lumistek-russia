@@ -105,19 +105,34 @@
                 
                 <div class="hidden md:flex space-x-6 lg:space-x-8">
                     <a href="#about" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">О компании</a>
-                    <a href="#products" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Каталог</a>
+                    <a href="catalog.html" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Каталог</a>
                     <a href="#news" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Новости</a>
                     <a href="#gallery" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Наши работы</a>
                     <a href="#contacts" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Контакты</a>
                 </div>
 
-                <div class="hidden md:flex">
+                <div class="hidden md:flex items-center gap-3">
+                    <!-- Корзина со счетчиком товаров -->
+                    <a href="cart.html" class="relative border border-white/20 text-gray-300 hover:text-white hover:border-brand-cyan p-2.5 rounded-full transition-all" aria-label="Корзина">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span id="cart-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-brand-cyan text-white text-[11px] font-bold flex items-center justify-center">0</span>
+                    </a>
+
                     <a href="tel:+79917184442" class="border border-brand-cyan text-brand-cyan hover:bg-brand-cyan hover:text-white px-5 py-2 rounded-full text-sm font-medium transition-all">
                         +7 (991) 718-44-42
                     </a>
                 </div>
 
-                <div class="md:hidden flex items-center">
+                <div class="md:hidden flex items-center gap-1">
+                    <!-- Корзина на телефоне -->
+                    <a href="cart.html" class="relative text-gray-300 hover:text-white p-2" aria-label="Корзина">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span id="cart-count-mobile" class="hidden absolute top-0 right-0 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-brand-cyan text-white text-[10px] font-bold flex items-center justify-center">0</span>
+                    </a>
                     <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none p-2">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path id="menu-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -131,7 +146,7 @@
         <div id="mobile-menu" class="hidden md:hidden bg-brand-darker border-b border-white/10 absolute w-full shadow-2xl">
             <div class="px-4 pt-2 pb-6 space-y-3">
                 <a href="#about" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">О компании</a>
-                <a href="#products" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Каталог</a>
+                <a href="catalog.html" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Каталог</a>
                 <a href="#news" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Новости</a>
                 <a href="#gallery" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Наши работы</a>
                 <a href="#contacts" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Контакты</a>
@@ -165,7 +180,7 @@
                     Надежная защита кузова от сколов, царапин и химии. Произведено в Корее с использованием передовых технологий.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full px-4 sm:px-0">
-                    <a href="#products" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-6 py-4 md:px-8 md:py-4 rounded-full font-bold text-base md:text-lg btn-hover-effect w-full sm:w-auto text-center transition-all">
+                    <a href="catalog.html" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-6 py-4 md:px-8 md:py-4 rounded-full font-bold text-base md:text-lg btn-hover-effect w-full sm:w-auto text-center transition-all">
                         Смотреть каталог
                     </a>
                     <a href="javascript:void(0)" onclick="openModal()" class="text-white border-2 border-white/20 hover:border-white px-6 py-4 md:px-8 md:py-4 rounded-full font-bold text-base md:text-lg w-full sm:w-auto text-center transition-all bg-black/30 backdrop-blur-sm">
@@ -260,6 +275,10 @@
                 <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">Каталог Lumistek</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-brand-pink via-brand-cyan to-brand-blue mx-auto rounded-full mb-6"></div>
                 <p class="text-gray-400 max-w-2xl mx-auto">Выберите оптимальную защиту для вашего автомобиля. <br class="hidden md:block"/>Смахните в сторону, чтобы посмотреть линейку.</p>
+                <a href="catalog.html" class="inline-flex items-center gap-2 mt-8 bg-brand-cyan hover:bg-brand-cyan/80 text-white px-7 py-3.5 rounded-full font-bold btn-hover-effect transition-all">
+                    Открыть каталог
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </a>
             </div>
             
             <div class="relative w-full max-w-lg mx-auto md:max-w-4xl h-[580px] md:h-[650px] perspective-1000 touch-pan-y" id="catalog-slider">
@@ -1048,5 +1067,24 @@
          ==================================================================== -->
     <script src="assets/js/config.js"></script>
     <script src="assets/js/news.js"></script>
+    <script src="assets/js/cart.js"></script>
+    <script>
+        /* Счетчик корзины в шапке — чтобы покупатель видел, сколько уже набрал. */
+        (function () {
+            function paint() {
+                if (!window.LumistekCart) return;
+                var n = window.LumistekCart.count();
+                ['cart-count', 'cart-count-mobile'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    el.textContent = String(n);
+                    el.classList.toggle('hidden', n === 0);
+                });
+            }
+            paint();
+            window.addEventListener('lumistek:cart-changed', paint);
+            window.addEventListener('storage', paint);
+        })();
+    </script>
 </body>
 </html>
