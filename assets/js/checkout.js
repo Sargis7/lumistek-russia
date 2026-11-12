@@ -166,6 +166,8 @@
         });
     }
 
+    /* Показывает подсказку у поля. Возвращает id поля — контракт явный:
+       раньше функция ничего не возвращала, и это легко принять за ошибку. */
     function showFieldError(fieldId, message) {
         var p = document.querySelector('[data-error-for="' + fieldId + '"]');
         if (p) {
@@ -174,14 +176,21 @@
         }
         var el = byId(fieldId);
         if (el && el.type !== 'checkbox') { el.classList.add('border-brand-pink'); }
+        return fieldId;
     }
 
+    /* Прячем плашку общей ошибки И стираем текст.
+       Обнулять текст обязательно: без этого в скрытом блоке остаётся
+       старое сообщение (например «В корзине нет товаров»), и оно
+       всплывёт при следующем показе — уже не по делу. */
     function hideOrderError() {
         var box = byId('order-error');
+        var txt = byId('order-error-text');
         if (box) {
             box.classList.add('hidden');
             box.classList.remove('flex');
         }
+        if (txt) { txt.textContent = ''; }
     }
 
     function showOrderError(message) {
@@ -380,6 +389,11 @@
         var demoNote   = byId('success-demo-note');
         var demoSpace  = byId('success-demo-spacer');
 
+        /* Заказ ушёл — плашка ошибки не должна пережить успех.
+           Иначе при следующем показе блока всплывёт старое сообщение,
+           которое противоречит уже оформленному заказу. */
+        hideOrderError();
+
         if (numEl)     { numEl.textContent = order.number; }
         if (demoNote)  { demoNote.classList.toggle('hidden', !demo); }
         if (demoSpace) { demoSpace.classList.toggle('hidden', !!demo); }
@@ -445,6 +459,11 @@
 
         var configured = telegramConfigured();
         setSubmitBusy(true, configured ? 'Отправляем…' : 'Отправляем… (демо)');
+
+        /* Страховка: перед отправкой на экране не должно остаться
+           следов прошлой неудачи. collectOrder() уже гасит плашку,
+           но повторяем явно — так инвариант не зависит от его правок. */
+        hideOrderError();
 
         var work;
         if (configured) {

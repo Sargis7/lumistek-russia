@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Lumistek">
+  <title>Lumistek</title>
+  <defs>
+    <linearGradient id="favL" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1cb0c6"/>
+      <stop offset="1" stop-color="#1b75bc"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Тёмный скруглённый квадрат в цвет фона сайта (#0a0a0a) -->
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#0a0a0a"/>
+
+  <!-- Буква L -->
+  <path d="M20 15 H27 V42 H45 V49 H20 Z" fill="url(#favL)"/>
+
+  <!-- Розовый акцент — отсылка к третьему цвету бренда -->
+  <circle cx="45" cy="20" r="4.5" fill="#f2668b"/>
+</svg>
