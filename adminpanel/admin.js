@@ -136,15 +136,376 @@
         return id;
     }
 
-    /* ---- 1.3 Проверка, что текст — валидный JavaScript -------------------- */
+    /* ---- 1.3 Разбор литералов и проверка текста БЕЗ eval ------------------ */
 
+    /*
+     * ЗАЧЕМ ЭТО ЗДЕСЬ.
+     *
+     * Раньше проверка «текст — валидный JS» делалась через конструктор
+     * динамического выполнения кода, а разбор catalog.js/gallery.js — через
+     * тот же конструктор с 'return (...)' внутри.
+     * Но Railway отдает страницы с таким заголовком:
+     *
+     *   content-security-policy: ... script-src 'self' 'unsafe-inline' https: *; ...
+     *
+     * В нем НЕТ 'unsafe-eval', поэтому браузер запрещает динамическое
+     * выполнение кода (конструктор Function и eval).
+     * Каждый такой вызов падал с ошибкой CSP, из-за чего вкладка «Товары»
+     * показывала «Товаров пока нет», хотя товары в файле есть.
+     *
+     * Поэтому здесь написан свой разборщик литералов: он читает текст,
+     * а не выполняет его. Никакой внешней библиотеки — файл должен
+     * остаться одним <script src="/adminpanel/admin.js">.
+     */
+
+    /* Ошибка с указанием строки и позиции — чтобы админ понял, где искать. */
+    function litError(text, pos, message) {
+        var upto = String(text).slice(0, Math.max(0, pos));
+        var line = upto.split('\n').length;
+        return new Error(message + ' (строка ' + line + ', символ ' + pos + ')');
+    }
+
+    /* Пропускаем пробелы, // комментарии и /* блочные комментарии. */
+    function litSkip(text, pos) {
+        var n = text.length;
+        var i = pos;
+        while (i < n) {
+            var c = text.charAt(i);
+            if (c === ' ' || c === '\t' || c === '\r' || c === '\n' || c === '\f' || c === '\v') {
+                i++;
+                continue;
+            }
+            if (c === '/' && text.charAt(i + 1) === '/') {
+                i += 2;
+                while (i < n && text.charAt(i) !== '\n') i++;
+                continue;
+            }
+            if (c === '/' && text.charAt(i + 1) === '*') {
+                var close = text.indexOf('*/', i + 2);
+                if (close < 0) throw litError(text, i, 'Не закрыт комментарий /* ... */');
+                i = close + 2;
+                continue;
+            }
+            break;
+        }
+        return i;
+    }
+
+    /*
+     * Идентификатор: буква, _ или $, дальше буквы, цифры, _ и $.
+     * Кириллицу тоже разрешаем, чтобы ключ вида { цена: 100 } разбирался,
+     * хотя в наших файлах таких ключей нет.
+     */
+    function litIsIdentStart(c) {
+        return /[A-Za-z_$\u00c0-\uffff]/.test(c);
+    }
+    function litIsIdentPart(c) {
+        return /[A-Za-z0-9_$\u00c0-\uffff]/.test(c);
+    }
+
+    /* Строка в одинарных или двойных кавычках, с escape-последовательностями. */
+    function litReadString(text, pos) {
+        var n = text.length;
+        var quote = text.charAt(pos);
+        var out = '';
+        var i = pos + 1;
+
+        while (i < n) {
+            var c = text.charAt(i);
+
+            if (c === '\\') {
+                var e = text.charAt(i + 1);
+                if (e === '') break;
+                if (e === 'n') { out += '\n'; i += 2; continue; }
+                if (e === 't') { out += '\t'; i += 2; continue; }
+                if (e === 'r') { out += '\r'; i += 2; continue; }
+                if (e === 'b') { out += '\b'; i += 2; continue; }
+                if (e === 'f') { out += '\f'; i += 2; continue; }
+                if (e === 'v') { out += '\v'; i += 2; continue; }
+                if (e === '0') { out += '\0'; i += 2; continue; }
+                if (e === 'u') {
+                    /* \uXXXX и \u{XXXX} — второй в старых браузерах не нужен,
+                     * но разобрать его ничего не стоит. */
+                    if (text.charAt(i + 2) === '{') {
+                        var shut = text.indexOf('}', i + 3);
+                        if (shut < 0) throw litError(text, i, 'Не закрыт \\u{...} в строке');
+                        var hex2 = text.slice(i + 3, shut);
+                        if (!/^[0-9a-fA-F]+$/.test(hex2)) {
+                            throw litError(text, i, 'Некорректный \\u{...} в строке');
+                        }
+                        out += String.fromCharCode(parseInt(hex2, 16));
+                        i = shut + 1;
+                        continue;
+                    }
+                    var hex4 = text.slice(i + 2, i + 6);
+                    if (!/^[0-9a-fA-F]{4}$/.test(hex4)) {
+                        throw litError(text, i, 'Некорректная последовательность \\uXXXX в строке');
+                    }
+                    out += String.fromCharCode(parseInt(hex4, 16));
+                    i += 6;
+                    continue;
+                }
+                /* \' \" \\ \/ и любой другой символ — просто сам символ. */
+                out += e;
+                i += 2;
+                continue;
+            }
+
+            if (c === quote) return { value: out, pos: i + 1 };
+            if (c === '\n') throw litError(text, i, 'Строка не закрыта кавычкой');
+            out += c;
+            i++;
+        }
+        throw litError(text, pos, 'Строка не закрыта кавычкой');
+    }
+
+    /* Число: 12, -3.5, 0.25. Никаких 1e5 и .5 — в наших файлах их нет. */
+    function litReadNumber(text, pos) {
+        var m = /^-?\d+(?:\.\d+)?/.exec(text.slice(pos));
+        if (!m) throw litError(text, pos, 'Ожидалось число');
+        return { value: parseFloat(m[0]), pos: pos + m[0].length };
+    }
+
+    /*
+     * Значение. Поддерживаем ровно то, что встречается в catalog.js,
+     * gallery.js и config.js: строка, число, true/false/null, массив,
+     * объект. Вызовы функций, шаблонные строки и склейка через +
+     * намеренно НЕ поддерживаются: лучше честная ошибка, чем тихо
+     * неверные данные.
+     */
+    function litParseValue(text, pos) {
+        var i = litSkip(text, pos);
+        if (i >= text.length) throw litError(text, i, 'Неожиданный конец файла — значение не дописано');
+        var c = text.charAt(i);
+
+        if (c === "'" || c === '"') return litReadString(text, i);
+        if (c === '{') return litParseObject(text, i);
+        if (c === '[') return litParseArray(text, i);
+        if (c === '-' || (c >= '0' && c <= '9')) return litReadNumber(text, i);
+
+        if (c === '`') {
+            throw litError(text, i, 'Шаблонные строки (`...`) не поддерживаются — нужны обычные кавычки');
+        }
+        if (c === '+' || c === '(') {
+            throw litError(text, i, 'Склейка (+) и вызовы функций не поддерживаются в этих файлах');
+        }
+
+        if (litIsIdentStart(c)) {
+            var j = i;
+            while (j < text.length && litIsIdentPart(text.charAt(j))) j++;
+            var word = text.slice(i, j);
+            if (word === 'true') return { value: true, pos: j };
+            if (word === 'false') return { value: false, pos: j };
+            if (word === 'null') return { value: null, pos: j };
+            if (word === 'undefined') return { value: undefined, pos: j };
+            throw litError(text, i, 'Непонятное значение: ' + word);
+        }
+
+        throw litError(text, i, 'Непонятный символ: ' + c);
+    }
+
+    /*
+     * Объект. Ключ — идентификатор, строка или число.
+     * Запятая перед } разрешена (лишняя не ломает разбор).
+     */
+    function litParseObject(text, pos) {
+        var i = litSkip(text, pos);
+        if (text.charAt(i) !== '{') throw litError(text, i, 'Ожидалась {');
+
+        var out = {};
+        i = i + 1;
+
+        for (;;) {
+            i = litSkip(text, i);
+            if (i >= text.length) throw litError(text, pos, 'Не закрыта фигурная скобка {');
+
+            if (text.charAt(i) === '}') return { value: out, pos: i + 1 };
+
+            var c = text.charAt(i);
+            var key;
+            var ks;
+            var kn;
+            var j;
+            if (c === "'" || c === '"') {
+                ks = litReadString(text, i);
+                key = ks.value;
+                i = ks.pos;
+            } else if (c === '-' || (c >= '0' && c <= '9')) {
+                kn = litReadNumber(text, i);
+                key = String(kn.value);
+                i = kn.pos;
+            } else if (litIsIdentStart(c)) {
+                j = i;
+                while (j < text.length && litIsIdentPart(text.charAt(j))) j++;
+                key = text.slice(i, j);
+                i = j;
+            } else {
+                throw litError(text, i, 'В объекте ожидался ключ, а встретилось: ' + c);
+            }
+
+            i = litSkip(text, i);
+            if (text.charAt(i) !== ':') {
+                throw litError(text, i, 'После ключа «' + key + '» ожидалось двоеточие');
+            }
+
+            var v = litParseValue(text, i + 1);
+            out[key] = v.value;
+            i = litSkip(text, v.pos);
+
+            if (text.charAt(i) === ',') { i++; continue; }
+            if (text.charAt(i) === '}') return { value: out, pos: i + 1 };
+            throw litError(text, i, 'После значения ключа «' + key + '» ожидалась запятая или }');
+        }
+    }
+
+    /* Массив. Запятая перед ] разрешена. */
+    function litParseArray(text, pos) {
+        var i = litSkip(text, pos);
+        if (text.charAt(i) !== '[') throw litError(text, i, 'Ожидалась [');
+
+        var out = [];
+        i = i + 1;
+
+        for (;;) {
+            i = litSkip(text, i);
+            if (i >= text.length) throw litError(text, pos, 'Не закрыта квадратная скобка [');
+
+            if (text.charAt(i) === ']') return { value: out, pos: i + 1 };
+
+            var v = litParseValue(text, i);
+            out.push(v.value);
+            i = litSkip(text, v.pos);
+
+            if (text.charAt(i) === ',') { i++; continue; }
+            if (text.charAt(i) === ']') return { value: out, pos: i + 1 };
+            throw litError(text, i, 'В списке ожидалась запятая или ]');
+        }
+    }
+
+    /*
+     * Разбирает текст целиком и требует, чтобы после значения не осталось
+     * ничего, кроме пробелов и комментариев. Так «{...} мусор» не пройдет молча.
+     */
+    function parseJsLiteral(text) {
+        var src = String(text == null ? '' : text);
+        var r = litParseValue(src, 0);
+        var rest = litSkip(src, r.pos);
+        if (rest < src.length) {
+            throw litError(src, rest, 'Лишний текст после значения: ' + src.charAt(rest));
+        }
+        return r.value;
+    }
+
+    /*
+     * Баланс скобок и кавычек. Строки и комментарии пропускаются, поэтому
+     * скобка внутри блочного комментария или внутри кавычек счет не сбивает.
+     * Возвращает null, если все в порядке, иначе — текст ошибки.
+     */
+    function checkStructureBalance(text) {
+        var src = String(text == null ? '' : text);
+        var stack = [];
+        var i = 0;
+        var n = src.length;
+        var line = 1;
+
+        while (i < n) {
+            var c = src.charAt(i);
+
+            if (c === '\n') { line++; i++; continue; }
+
+            if (c === '/' && src.charAt(i + 1) === '/') {
+                i += 2;
+                while (i < n && src.charAt(i) !== '\n') i++;
+                continue;
+            }
+            if (c === '/' && src.charAt(i + 1) === '*') {
+                var close = src.indexOf('*/', i + 2);
+                if (close < 0) return 'Не закрыт комментарий /* ... */ (строка ' + line + ')';
+                for (var k = i; k < close; k++) if (src.charAt(k) === '\n') line++;
+                i = close + 2;
+                continue;
+            }
+            if (c === "'" || c === '"') {
+                var quote = c;
+                i++;
+                var closed = false;
+                while (i < n) {
+                    var q = src.charAt(i);
+                    if (q === '\\') { i += 2; continue; }
+                    if (q === '\n') break;
+                    if (q === quote) { closed = true; i++; break; }
+                    i++;
+                }
+                if (!closed) return 'Не закрыта кавычка ' + quote + ' (строка ' + line + ')';
+                continue;
+            }
+
+            if (c === '{' || c === '[') { stack.push({ ch: c, line: line }); i++; continue; }
+            if (c === '}' || c === ']') {
+                var want = (c === '}') ? '{' : '[';
+                var top = stack.pop();
+                if (!top) return 'Лишняя закрывающая скобка ' + c + ' (строка ' + line + ')';
+                if (top.ch !== want) {
+                    return 'Скобки перепутаны: открыли ' + top.ch + ' (строка ' + top.line +
+                        '), а закрыли ' + c + ' (строка ' + line + ')';
+                }
+                i++;
+                continue;
+            }
+            i++;
+        }
+
+        if (stack.length) {
+            var last = stack[stack.length - 1];
+            return 'Не закрыта скобка ' + last.ch + ' (строка ' + last.line + ')';
+        }
+        return null;
+    }
+
+    /*
+     * Проверяет, что текст — валидный JS, и только потом пишет его в GitHub.
+     * Это последняя линия обороны: если генератор что-то сломал,
+     * на сайте не появится битый файл.
+     *
+     * ВАЖНОЕ ОГРАНИЧЕНИЕ (честно).
+     * Раньше здесь текст прогонялся через конструктор Function — браузер
+     * проверял синтаксис по-настоящему. Теперь CSP это запрещает,
+     * поэтому проверка СЛАБЕЕ:
+     *   1) если текст — файл вида window.LUMISTEK_XXX = { ... };,
+     *      его литерал разбирается нашим разборщиком целиком;
+     *   2) для любого другого текста проверяется только баланс скобок
+     *      и кавычек.
+     * Значит, произвольную синтаксическую ошибку в куске обычного JS
+     * (забытый return, лишняя запятая вне списка) мы НЕ поймаем.
+     * Для наших файлов это не страшно: их целиком пишет сама админка,
+     * и они всегда имеют форму window.LUMISTEK_XXX = { ... };
+     */
     function isJsSafe(text) {
+        var src = String(text == null ? '' : text);
+
+        var balance = checkStructureBalance(src);
+        if (balance) return { ok: false, error: balance };
+
+        /*
+         * Ищем присваивание window.LUMISTEK_XXX = { ... }.
+         * Если это не файл настроек — ограничиваемся проверкой баланса выше.
+         */
+        var m = /window\.LUMISTEK_[A-Z0-9_]+\s*=\s*\{/.exec(src);
+        if (!m) return { ok: true };
+
+        var open = src.indexOf('{', m.index + m[0].length - 1);
+        var end = findMatchingBrace(src, open);
+        if (end < 0) {
+            return { ok: false, error: 'Не сходятся фигурные скобки после window.LUMISTEK_...' };
+        }
+
         try {
-            new Function(text);           /* eslint-disable-line no-new-func */
-            return { ok: true };
+            parseJsLiteral(src.slice(open, end + 1));
         } catch (e) {
             return { ok: false, error: (e && e.message) ? e.message : String(e) };
         }
+
+        return { ok: true };
     }
 
     /* ---- 1.4 Кавычки и числа --------------------------------------------- */
@@ -1179,7 +1540,7 @@
         var literal = src.slice(open, end + 1);
         var model;
         try {
-            model = new Function('"use strict"; return (' + literal + ');')();
+            model = parseJsLiteral(literal);
         } catch (e) {
             throw new Error('Не удалось прочитать список товаров: ' + (e && e.message ? e.message : e));
         }
@@ -1692,7 +2053,7 @@
 
         var model;
         try {
-            model = new Function('"use strict"; return (' + src.slice(open, end + 1) + ');')();
+            model = parseJsLiteral(src.slice(open, end + 1));
         } catch (e) {
             throw new Error('Не удалось прочитать список работ: ' + (e && e.message ? e.message : e));
         }
@@ -2309,7 +2670,9 @@
             seedGallery: seedGallery,
             translit: translit,
             normalizeDate: normalizeDate,
-            isJsSafe: isJsSafe
+            isJsSafe: isJsSafe,
+            parseJsLiteral: parseJsLiteral,
+            checkStructureBalance: checkStructureBalance
         };
     }
 
