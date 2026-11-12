@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина — Lumistek</title>
+    <meta name="description" content="Корзина Lumistek: проверьте состав заказа, укажите контактные данные и оформите покупку антигравийных, тонировочных плёнок и защиты лобового стекла.">
+    <link rel="canonical" href="https://lumistek.ru/cart.html">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            cyan: '#1cb0c6',
+                            blue: '#1b75bc',
+                            pink: '#f2668b',
+                            dark: '#111111',
+                            darker: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+
+        .btn-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(28, 176, 198, 0.5);
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Скроллбар в модальном окне политики конфиденциальности */
+        .desc-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .desc-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .desc-scroll::-webkit-scrollbar-thumb {
+            background: rgba(28, 176, 198, 0.5);
+            border-radius: 4px;
+        }
+
+        section[id], footer[id] {
+            scroll-margin-top: 5rem;
+        }
+        @media (min-width: 768px) {
+            section[id], footer[id] {
+                scroll-margin-top: 6rem;
+            }
+        }
+
+        /* Скрываем стрелки у числового поля количества */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Удаление строки корзины */
+        .cart-row {
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .cart-row-removing {
+            opacity: 0;
+            transform: translateX(24px);
+        }
+
+        /* Плавное появление блоков */
+        @keyframes cartFadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .cart-fade-up {
+            animation: cartFadeUp 0.35s ease both;
+        }
+
+        /* Галочка на экране успешного заказа */
+        @keyframes checkCircle {
+            from { stroke-dashoffset: 166; }
+            to   { stroke-dashoffset: 0; }
+        }
+        @keyframes checkMark {
+            from { stroke-dashoffset: 48; }
+            to   { stroke-dashoffset: 0; }
+        }
+        .check-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: checkCircle 0.7s ease-out forwards;
+        }
+        .check-mark {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkMark 0.4s ease-out 0.6s forwards;
+        }
+        @keyframes successPop {
+            0%   { opacity: 0; transform: scale(0.94); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .success-pop {
+            animation: successPop 0.4s ease-out both;
+        }
+    </style>
+</head>
+<body class="bg-brand-darker text-white font-sans antialiased overflow-x-hidden">
+
+    <!-- Навигация -->
+    <nav class="fixed w-full z-40 bg-brand-darker/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16 md:h-20">
+                <a href="index.html" class="flex-shrink-0 flex items-center">
+                    <img src="logo.png?v=2" alt="LUMISTEK" class="h-10 md:h-12 w-auto object-contain">
+                </a>
+
+                <div class="hidden md:flex space-x-6 lg:space-x-8">
+                    <a href="index.html#about" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">О компании</a>
+                    <a href="catalog.html" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Каталог</a>
+                    <a href="index.html#news" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Новости</a>
+                    <a href="index.html#gallery" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Наши работы</a>
+                    <a href="index.html#contacts" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Контакты</a>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="tel:+79917184442" class="border border-brand-cyan text-brand-cyan hover:bg-brand-cyan hover:text-white px-5 py-2 rounded-full text-sm font-medium transition-all">
+                        +7 (991) 718-44-42
+                    </a>
+                    <a href="cart.html" class="relative p-2 text-gray-300 hover:text-white transition-colors" aria-label="Корзина">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span id="cart-count" class="hidden absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-brand-pink text-white text-xs font-bold rounded-full flex items-center justify-center" aria-hidden="true">0</span>
+                    </a>
+                </div>
+
+                <div class="md:hidden flex items-center space-x-1">
+                    <a href="cart.html" class="relative p-2 text-gray-300 hover:text-white transition-colors" aria-label="Корзина">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span id="cart-count" class="hidden absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-brand-pink text-white text-xs font-bold rounded-full flex items-center justify-center" aria-hidden="true">0</span>
+                    </a>
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none p-2" aria-label="Меню">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path id="menu-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div id="mobile-menu" class="hidden md:hidden bg-brand-darker border-b border-white/10 absolute w-full shadow-2xl">
+            <div class="px-4 pt-2 pb-6 space-y-3">
+                <a href="index.html#about" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">О компании</a>
+                <a href="catalog.html" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Каталог</a>
+                <a href="index.html#news" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Новости</a>
+                <a href="index.html#gallery" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Наши работы</a>
+                <a href="index.html#contacts" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Контакты</a>
+                <a href="tel:+79917184442" class="block mt-6 text-center border-2 border-brand-cyan text-brand-cyan hover:bg-brand-cyan hover:text-white px-6 py-3 rounded-xl font-bold transition-all">
+                    +7 (991) 718-44-42
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Заголовок страницы -->
+    <section class="pt-28 md:pt-36 pb-8 md:pb-10 bg-brand-darker">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="cart-page-head">
+            <nav class="text-sm text-gray-500 mb-6" aria-label="Хлебные крошки">
+                <a href="index.html" class="hover:text-brand-cyan transition-colors">Главная</a>
+                <span class="mx-2">/</span>
+                <a href="catalog.html" class="hover:text-brand-cyan transition-colors">Каталог</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-400">Корзина</span>
+            </nav>
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">Корзина</h1>
+            <div class="w-24 h-1 bg-gradient-to-r from-brand-pink via-brand-cyan to-brand-blue rounded-full mb-6"></div>
+            <p class="text-gray-400 max-w-2xl">Проверьте состав заказа и заполните данные для связи. Оплата и условия доставки согласовываются с менеджером.</p>
+        </div>
+    </section>
+
+    <!-- Основной блок -->
+    <section class="pb-16 md:pb-24 bg-brand-darker">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- ================================================================
+                 ПУСТАЯ КОРЗИНА
+                 ================================================================ -->
+            <div id="cart-empty" class="hidden">
+                <div class="max-w-xl mx-auto text-center bg-brand-dark border border-white/10 rounded-2xl p-8 md:p-14">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-brand-cyan/10 border border-brand-cyan/20 flex items-center justify-center">
+                        <svg class="w-10 h-10 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">Ваша корзина пока пуста</h2>
+                    <p class="text-gray-400 mb-8">Добавьте товары из каталога — и они появятся здесь. Если нужна помощь с подбором плёнки, позвоните нам.</p>
+                    <a href="catalog.html" class="inline-block bg-brand-cyan hover:bg-brand-cyan/80 text-white px-8 py-4 rounded-xl font-bold text-lg btn-hover-effect transition-all">
+                        Перейти в каталог
+                    </a>
+                    <p class="mt-6">
+                        <a href="tel:+79917184442" class="text-brand-cyan hover:text-white transition-colors text-sm">+7 (991) 718-44-42</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- ================================================================
+                 КОРЗИНА + ОФОРМЛЕНИЕ
+                 ================================================================ -->
+            <div id="cart-main" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+
+                    <!-- ---------------- ТОВАРЫ ---------------- -->
+                    <div class="lg:col-span-7 xl:col-span-8">
+                        <div class="bg-brand-dark border border-white/10 rounded-2xl overflow-hidden">
+                            <div class="flex items-center justify-between px-5 md:px-7 py-5 border-b border-white/10">
+                                <h2 class="text-xl md:text-2xl font-bold text-white">Ваш заказ</h2>
+                                <button type="button" id="cart-clear-btn" class="text-sm text-gray-400 hover:text-brand-pink transition-colors">
+                                    Очистить корзину
+                                </button>
+                            </div>
+
+                            <!-- Заголовки колонок (только на широких экранах) -->
+                            <div class="hidden md:grid grid-cols-12 gap-4 px-5 md:px-7 py-3 bg-white/[0.03] border-b border-white/10 text-xs uppercase tracking-wider text-gray-500">
+                                <div class="col-span-6">Товар</div>
+                                <div class="col-span-3 text-center">Количество</div>
+                                <div class="col-span-2 text-right">Сумма</div>
+                                <div class="col-span-1"></div>
+                            </div>
+
+                            <!-- Строки корзины рисует скрипт ниже -->
+                            <div id="cart-rows"></div>
+                        </div>
+
+                        <!-- Предупреждение о товарах «цена по запросу» -->
+                        <div id="cart-onrequest-note" class="hidden mt-4 flex items-start gap-3 bg-brand-cyan/5 border border-brand-cyan/30 rounded-xl px-5 py-4">
+                            <svg class="w-5 h-5 text-brand-cyan flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="text-sm text-gray-300">В заказе есть позиции с ценой по запросу. Мы рассчитаем их стоимость и сообщим вам при подтверждении заказа.</p>
+                        </div>
+                    </div>
+
+                    <!-- ---------------- ИТОГИ ---------------- -->
+                    <aside class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24">
+                        <div class="bg-brand-dark border border-white/10 rounded-2xl p-5 md:p-7">
+                            <h2 class="text-xl md:text-2xl font-bold text-white mb-6">Итого</h2>
+
+                            <div class="space-y-3 text-sm md:text-base">
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-gray-400">Позиций в заказе</span>
+                                    <span id="summary-lines" class="text-white font-medium">0</span>
+                                </div>
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-gray-400">Единиц товара</span>
+                                    <span id="summary-units" class="text-white font-medium">0</span>
+                                </div>
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-gray-400">Товары</span>
+                                    <span id="summary-subtotal" class="text-white font-medium">0 ₽</span>
+                                </div>
+                                <div class="flex justify-between gap-4">
+                                    <span class="text-gray-400">Доставка</span>
+                                    <span class="text-gray-400 text-right">по согласованию</span>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-white/10 mt-6 pt-6">
+                                <div class="flex justify-between items-end gap-4">
+                                    <span class="text-gray-300 font-medium">Итого</span>
+                                    <span id="summary-total" class="text-2xl md:text-3xl font-bold text-brand-cyan">0 ₽</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-3">Оплата после подтверждения заказа менеджером.</p>
+                            </div>
+
+                            <button type="button" id="cart-scroll-to-form" class="w-full mt-6 bg-brand-cyan hover:bg-brand-cyan/80 text-white py-4 rounded-xl font-bold text-lg btn-hover-effect transition-all">
+                                Перейти к оформлению
+                            </button>
+
+                            <div class="mt-6 pt-6 border-t border-white/10 space-y-3 text-sm">
+                                <div class="flex items-center gap-3 text-gray-400">
+                                    <svg class="w-5 h-5 text-brand-cyan flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                    <span>Продукция произведена в Южной Корее</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-gray-400">
+                                    <svg class="w-5 h-5 text-brand-cyan flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                                    <span>Отгрузка из Москвы, Самары и Уфы</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-gray-400">
+                                    <svg class="w-5 h-5 text-brand-cyan flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                    <a href="tel:+79917184442" class="hover:text-brand-cyan transition-colors">+7 (991) 718-44-42</a>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- ============================================================
+                     ОФОРМЛЕНИЕ ЗАКАЗА
+                     ============================================================ -->
+                <div id="checkout" class="mt-10 lg:mt-14">
+                    <div class="bg-brand-dark border border-white/10 rounded-2xl p-5 md:p-8 max-w-4xl mx-auto">
+                        <h2 class="text-xl md:text-2xl font-bold text-white mb-2">Данные для оформления</h2>
+                        <p class="text-gray-400 text-sm mb-8">Поля со звёздочкой обязательны. Менеджер свяжется с вами для подтверждения заказа.</p>
+
+                        <form id="order-form" novalidate class="space-y-6">
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="order-name" class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">ФИО <span class="text-brand-pink">*</span></label>
+                                    <input type="text" id="order-name" name="name" autocomplete="name" placeholder="Иванов Иван Иванович"
+                                           class="w-full bg-brand-darker border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan transition-colors">
+                                    <p class="hidden text-sm text-brand-pink mt-1.5 ml-1" data-error-for="order-name"></p>
+                                </div>
+
+                                <div>
+                                    <label for="order-phone" class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Телефон <span class="text-brand-pink">*</span></label>
+                                    <input type="tel" id="order-phone" name="phone" autocomplete="tel" placeholder="+7 (999) 000-00-00"
+                                           class="w-full bg-brand-darker border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan transition-colors">
+                                    <p class="hidden text-sm text-brand-pink mt-1.5 ml-1" data-error-for="order-phone"></p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="order-city" class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Город <span class="text-brand-pink">*</span></label>
+                                <input type="text" id="order-city" name="city" autocomplete="address-level2" placeholder="Москва"
+                                       class="w-full bg-brand-darker border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan transition-colors">
+                                <p class="hidden text-sm text-brand-pink mt-1.5 ml-1" data-error-for="order-city"></p>
+                            </div>
+
+                            <div>
+                                <label for="order-delivery" class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Способ получения</label>
+                                <select id="order-delivery" name="delivery"
+                                        class="w-full bg-brand-darker border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors appearance-none cursor-pointer">
+                                    <option value="Самовывоз">Самовывоз</option>
+                                    <option value="Доставка по городу">Доставка по городу</option>
+                                    <option value="Транспортной компанией">Транспортной компанией</option>
+                                </select>
+                            </div>
+
+                            <div id="order-address-wrap" class="hidden">
+                                <label for="order-address" class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Адрес доставки</label>
+                                <input type="text" id="order-address" name="address" autocomplete="street-address" placeholder="Улица, дом, офис"
+                                       class="w-full bg-brand-darker border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan transition-colors">
+                                <p class="hidden text-sm text-brand-pink mt-1.5 ml-1" data-error-for="order-address"></p>
+                            </div>
+
+                            <div>
+                                <label for="order-comment" class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Комментарий к заказу</label>
+                                <textarea id="order-comment" name="comment" rows="4" placeholder="Например: нужен счёт на организацию, удобное время звонка"
+                                          class="w-full bg-brand-darker border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan transition-colors resize-y"></textarea>
+                            </div>
+
+                            <div>
+                                <label for="order-consent" class="flex items-start gap-3 cursor-pointer select-none">
+                                    <input type="checkbox" id="order-consent" name="consent"
+                                           class="mt-0.5 w-5 h-5 flex-shrink-0 rounded border border-white/20 bg-brand-darker text-brand-cyan focus:outline-none focus:ring-2 focus:ring-brand-cyan cursor-pointer accent-brand-cyan">
+                                    <span class="text-sm text-gray-400 leading-relaxed">
+                                        Я согласен на обработку персональных данных и принимаю
+                                        <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-brand-cyan hover:underline">Политику конфиденциальности</a>.
+                                        <span class="text-brand-pink">*</span>
+                                    </span>
+                                </label>
+                                <p class="hidden text-sm text-brand-pink mt-1.5 ml-1" data-error-for="order-consent"></p>
+                            </div>
+
+                            <div id="order-error" class="hidden items-start gap-3 bg-brand-pink/5 border border-brand-pink/40 rounded-xl px-5 py-4">
+                                <svg class="w-5 h-5 text-brand-pink flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path></svg>
+                                <div>
+                                    <p id="order-error-text" class="text-sm text-gray-200">Не удалось отправить заказ. Попробуйте ещё раз или позвоните нам.</p>
+                                    <p class="text-sm text-gray-400 mt-1">Телефон: <a href="tel:+79917184442" class="text-brand-cyan hover:underline">+7 (991) 718-44-42</a></p>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="order-submit"
+                                    class="w-full bg-brand-cyan hover:bg-brand-cyan/80 disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-lg transition-colors">
+                                Оформить заказ
+                            </button>
+
+                            <p class="text-xs text-gray-500 text-center">Нажимая кнопку, вы подтверждаете правильность указанных данных.</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================
+                 УСПЕШНЫЙ ЗАКАЗ
+                 ================================================================ -->
+            <div id="order-success" class="hidden">
+                <div class="max-w-2xl mx-auto text-center bg-brand-dark border border-white/10 rounded-2xl p-8 md:p-14 success-pop">
+                    <div class="w-24 h-24 mx-auto mb-8">
+                        <svg class="w-24 h-24" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+                            <circle class="check-circle" cx="26" cy="26" r="25" stroke="#1cb0c6" stroke-width="2.5" fill="none" stroke-linecap="round"></circle>
+                            <path class="check-mark" d="M14 27l8 8 16-16" stroke="#1cb0c6" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Спасибо за заказ!</h2>
+                    <p class="text-gray-400 mb-8 leading-relaxed">
+                        Мы получили ваш заказ. Менеджер свяжется с вами в ближайшее время, чтобы согласовать детали оплаты и условия доставки.
+                    </p>
+
+                    <div class="inline-block bg-brand-darker border border-brand-cyan/30 rounded-xl px-8 py-5 mb-3">
+                        <p class="text-xs uppercase tracking-wider text-gray-500 mb-2">Номер заказа</p>
+                        <p id="success-order-number" class="text-2xl md:text-3xl font-bold text-brand-cyan tracking-wide">—</p>
+                    </div>
+
+                    <p id="success-demo-note" class="hidden text-xs text-gray-500 mb-8">(демо-режим — заказ не был отправлен)</p>
+                    <div id="success-demo-spacer" class="mb-8"></div>
+
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="catalog.html" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-8 py-4 rounded-xl font-bold btn-hover-effect transition-all">
+                            Вернуться в каталог
+                        </a>
+                        <a href="index.html" class="border border-white/20 hover:border-white text-white px-8 py-4 rounded-xl font-bold transition-all">
+                            На главную
+                        </a>
+                    </div>
+
+                    <p class="text-sm text-gray-500 mt-8">
+                        Возникли вопросы? Позвоните: <a href="tel:+79917184442" class="text-brand-cyan hover:text-white transition-colors">+7 (991) 718-44-42</a>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Подвал / Контакты -->
+    <footer id="contacts" class="bg-brand-darker border-t border-white/10 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-12">
+                <!-- Логотип, описание -->
+                <div class="col-span-1 lg:col-span-3 text-center lg:text-left">
+                    <div class="flex items-center justify-center lg:justify-start mb-6">
+                        <img src="logo.png?v=2" alt="LUMISTEK" class="h-10 w-auto object-contain">
+                    </div>
+                    <p class="text-gray-400 mb-6 max-w-md mx-auto lg:mx-0 text-sm md:text-base">
+                        Lumistek — это инновационные решения в сфере антигравийных полиуретановых пленок. Мы предлагаем продукт премиум-класса, произведенный в Южной Корее.
+                    </p>
+                    <a href="tel:+79917184442" class="text-2xl font-bold text-white hover:text-brand-cyan transition-colors inline-block mb-4">
+                        +7 (991) 718-44-42
+                    </a>
+                </div>
+
+                <!-- Филиалы -->
+                <div class="col-span-1 lg:col-span-9">
+                    <h4 class="text-xl font-bold mb-8 text-white text-center lg:text-left">Наши представительства</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left">
+                        <!-- Москва -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Москва</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Видное, Белокаменное шоссе 20<br>БЦ Видный</p>
+                            <a href="tel:+79917184442" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (991) 718-44-42</a>
+                        </div>
+                        
+                        <!-- Уфа -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Уфа</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Коммунистическая 116<br>БЦ Вафа</p>
+                            <a href="tel:+79373401024" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (937) 340-10-24</a>
+                        </div>
+
+                        <!-- Самара -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Самара</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Московское шоссе 4а стр 1<br>БЦ Скала холл</p>
+                            <a href="tel:+79958320852" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (995) 832-08-52</a>
+                        </div>
+                        
+                        <!-- Ереван -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Ереван</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">ул. Арташисян, 81/1<br>&nbsp;</p>
+                            <a href="tel:+37433044410" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+374 33 044 410</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-sm text-center md:text-left">© 2024 Lumistek. Все права защищены.</p>
+                
+                <div class="text-gray-500 text-sm text-center">
+                    Сайт разработал <a href="https://t.me/s777official" target="_blank" class="text-brand-cyan hover:text-white transition-colors">@s777official</a>
+                </div>
+                
+                <div class="flex space-x-6">
+                    <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-gray-500 hover:text-white text-sm transition-colors text-center md:text-right">Политика конфиденциальности</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Плашка Cookie -->
+    <div id="cookie-banner" class="fixed bottom-0 left-0 w-full bg-brand-darker border-t border-brand-cyan/30 p-4 z-50 transform transition-transform duration-500 translate-y-full shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-gray-400 text-sm text-center sm:text-left leading-relaxed">
+                Мы используем файлы cookie для улучшения работы сайта. Продолжая использовать сайт, вы соглашаетесь с нашей 
+                <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-brand-cyan hover:underline">Политикой конфиденциальности</a>.
+            </p>
+            <button onclick="acceptCookies()" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-8 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap shadow-lg">
+                Понятно
+            </button>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Заявка -->
+    <div id="lead-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <div class="relative bg-brand-darker border border-white/10 p-6 md:p-10 rounded-2xl w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="modal-content">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h3 class="text-3xl font-bold text-white mb-2">Оставить заявку</h3>
+            <p class="text-gray-400 text-sm mb-8">Оставьте свои данные, и наши менеджеры свяжутся с вами в ближайшее время.</p>
+            
+            <form id="lead-form" class="space-y-5" onsubmit="submitForm(event)">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Ваше ФИО</label>
+                    <input type="text" id="form-name" required class="w-full bg-brand-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors" placeholder="Иванов Иван Иванович">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Ваш Город</label>
+                    <input type="text" id="form-city" required class="w-full bg-brand-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors" placeholder="Москва">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Номер телефона</label>
+                    <input type="tel" id="form-phone" required class="w-full bg-brand-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors" placeholder="+7 (999) 000-00-00">
+                </div>
+                
+                <p class="text-xs text-gray-500 text-center mt-4">
+                    Нажимая кнопку «Отправить», вы соглашаетесь с <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-brand-cyan hover:underline">Политикой обработки персональных данных</a>.
+                </p>
+
+                <button type="submit" class="w-full bg-brand-cyan hover:bg-brand-cyan/80 text-white py-4 rounded-xl font-bold transition-colors mt-2 text-lg" id="submit-btn">
+                    Отправить
+                </button>
+                <p id="form-status" class="text-sm text-center hidden mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Политика конфиденциальности -->
+    <div id="privacy-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4 py-6">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePrivacyModal()"></div>
+        
+        <div class="relative bg-brand-darker border border-white/10 p-6 md:p-8 rounded-2xl w-full max-w-3xl shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-full" id="privacy-modal-content">
+            <button onclick="closePrivacyModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2 z-10 bg-brand-darker rounded-full">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h3 class="text-2xl font-bold text-white mb-6 pr-8 shrink-0">Политика конфиденциальности и обработки персональных данных</h3>
+            
+            <div class="overflow-y-auto desc-scroll pr-4 text-gray-400 text-sm space-y-4 flex-grow">
+                <p>Настоящая Политика конфиденциальности определяет порядок обработки и защиты персональной информации о пользователях, которую может получить сайт Lumistek во время его использования.</p>
+                
+                <h4 class="text-white font-bold mt-4 mb-2">1. Общие положения</h4>
+                <p>1.1. Использование сайта означает безоговорочное согласие пользователя с настоящей Политикой и указанными в ней условиями обработки его персональной информации.<br>
+                1.2. В случае несогласия с этими условиями пользователь должен воздержаться от использования сайта.</p>
+                
+                <h4 class="text-white font-bold mt-4 mb-2">2. Персональная информация пользователей</h4>
+                <p>2.1. В рамках настоящей Политики под «персональной информацией пользователя» понимаются:<br>
+                — Персональная информация, которую пользователь предоставляет о себе самостоятельно при оставлении заявки (ФИО, номер телефона, город).<br>
+                — Данные, которые автоматически передаются сервисам сайта в процессе их использования с помощью установленного на устройстве пользователя программного обеспечения, в том числе IP-адрес, данные файлов cookie, информация о браузере пользователя.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">3. Цели сбора персональной информации</h4>
+                <p>Сайт собирает и хранит только ту персональную информацию, которая необходима для предоставления сервисов или исполнения соглашений и договоров с пользователем, а именно для:<br>
+                — Установления с пользователем обратной связи, включая направление уведомлений, запросов, касающихся использования сайта, оказания услуг, обработки запросов и заявок.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">4. Файлы Cookie</h4>
+                <p>Сайт использует файлы cookie и схожие технологии (пиксели, веб-маяки) для обеспечения максимального удобства пользователей, предоставляя персонализированную информацию. Продолжая использование сайта, вы даете согласие на использование файлов cookie.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">5. Защита информации</h4>
+                <p>Сайт принимает необходимые и достаточные организационные и технические меры для защиты персональной информации пользователя от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования, распространения, а также от иных неправомерных действий с ней третьих лиц.</p>
+            </div>
+            
+            <div class="shrink-0 mt-6 pt-4 border-t border-white/10 text-center">
+                <button onclick="closePrivacyModal()" class="bg-white/10 hover:bg-white/20 text-white px-8 py-2.5 rounded-xl font-medium transition-colors">Закрыть окно</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Скрипт мобильного меню ---
+        var btn = document.getElementById('mobile-menu-btn');
+        var menu = document.getElementById('mobile-menu');
+        var menuPath = document.getElementById('menu-icon-path');
+
+        if (btn && menu) {
+            btn.addEventListener('click', function () {
+                menu.classList.toggle('hidden');
+                if (menu.classList.contains('hidden')) {
+                    menuPath.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                } else {
+                    menuPath.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+                }
+            });
+
+            menu.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    menu.classList.add('hidden');
+                    menuPath.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                });
+            });
+        }
+
+        // --- COOKIE БАННЕР ---
+        document.addEventListener('DOMContentLoaded', function () {
+            if (!localStorage.getItem('cookiesAccepted')) {
+                setTimeout(function () {
+                    var banner = document.getElementById('cookie-banner');
+                    if (banner) banner.classList.remove('translate-y-full');
+                }, 1500);
+            }
+        });
+
+        function acceptCookies() {
+            localStorage.setItem('cookiesAccepted', 'true');
+            var banner = document.getElementById('cookie-banner');
+            if (banner) banner.classList.add('translate-y-full');
+        }
+
+        // --- Модальное окно: Политика конфиденциальности ---
+        var privacyModal = document.getElementById('privacy-modal');
+        var privacyContent = document.getElementById('privacy-modal-content');
+
+        function openPrivacyModal() {
+            privacyModal.classList.remove('hidden');
+            setTimeout(function () {
+                privacyModal.classList.remove('opacity-0');
+                privacyContent.classList.remove('scale-95');
+                privacyContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closePrivacyModal() {
+            privacyModal.classList.add('opacity-0');
+            privacyContent.classList.remove('scale-100');
+            privacyContent.classList.add('scale-95');
+            setTimeout(function () {
+                privacyModal.classList.add('hidden');
+            }, 300);
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && privacyModal && !privacyModal.classList.contains('hidden')) {
+                closePrivacyModal();
+            }
+        });
+    </script>
+
+    <!-- ====================================================================
+         ЛОГИКА КОРЗИНЫ
+         Зависимости (порядок важен):
+           1. assets/js/catalog.js — товары (window.LUMISTEK_CATALOG)
+           2. assets/js/cart.js    — работа с localStorage (window.LumistekCart)
+         Ниже — отрисовка таблицы заказа на этой странице.
+         ==================================================================== -->
+    <script src="assets/js/catalog.js"></script>
+    <script src="assets/js/cart.js"></script>
+    <script src="assets/js/checkout.js"></script>
+
+    <script>
+    (function (window, document) {
+        'use strict';
+
+        var Cart = window.LumistekCart;
+
+        /* ------------------------------------------------------------------
+         *  ЗАПАСНОЙ ВАРИАНТ
+         *  Если assets/js/cart.js не подключился (404, опечатка в пути),
+         *  страница не должна остаться белым экраном. Рисуем сообщение.
+         * ------------------------------------------------------------------ */
+        if (!Cart) {
+            document.addEventListener('DOMContentLoaded', function () {
+                var box = document.getElementById('cart-empty');
+                if (box) {
+                    box.classList.remove('hidden');
+                    box.innerHTML =
+                        '<div class="max-w-xl mx-auto text-center bg-brand-dark border border-brand-pink/40 rounded-2xl p-8 md:p-14">' +
+                        '<h2 class="text-2xl font-bold text-white mb-3">Корзина временно недоступна</h2>' +
+                        '<p class="text-gray-400 mb-6">Не удалось загрузить модуль корзины. Позвоните нам, и мы оформим заказ вручную.</p>' +
+                        '<a href="tel:+79917184442" class="text-brand-cyan hover:text-white transition-colors font-medium">+7 (991) 718-44-42</a>' +
+                        '</div>';
+                }
+            });
+            return;
+        }
+
+        var NBSP = '\u00A0';
+        var RUB = '\u20BD';
+
+        /* Экранирование текста перед вставкой в innerHTML. */
+        function esc(value) {
+            return String(value === null || value === undefined ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /* Склонение слова: 1 позиция / 2 позиции / 5 позиций. */
+        function plural(n, one, few, many) {
+            var abs = Math.abs(n) % 100;
+            var last = abs % 10;
+            if (abs > 10 && abs < 20) return many;
+            if (last > 1 && last < 5) return few;
+            if (last === 1) return one;
+            return many;
+        }
+
+        /* Иконка корзины-заглушка, если фото товара не загрузилось. */
+        var NO_PHOTO = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="1.2">' +
+            '<rect x="3" y="3" width="18" height="18" rx="2"></rect>' +
+            '<path d="M3 15l5-5 4 4 3-3 6 6"></path>' +
+            '<circle cx="8.5" cy="8.5" r="1.2"></circle>' +
+            '</svg>'
+        );
+
+        /* ------------------------------------------------------------------
+         *  ЭЛЕМЕНТЫ СТРАНИЦЫ
+         * ------------------------------------------------------------------ */
+        var root = null;         // вся страница целиком (для делегирования событий)
+        var elRows, elEmpty, elMain, elSubtotal, elTotal, elLines, elUnits;
+        var elOnRequestNote, elClearBtn, elScrollToForm, elSuccess, elSuccessNumber;
+        var elSuccessDemoNote, elSuccessDemoSpacer;
+
+        function cacheElements() {
+            root = document.body;
+            elRows = document.getElementById('cart-rows');
+            elEmpty = document.getElementById('cart-empty');
+            elMain = document.getElementById('cart-main');
+            elSubtotal = document.getElementById('summary-subtotal');
+            elTotal = document.getElementById('summary-total');
+            elLines = document.getElementById('summary-lines');
+            elUnits = document.getElementById('summary-units');
+            elOnRequestNote = document.getElementById('cart-onrequest-note');
+            elClearBtn = document.getElementById('cart-clear-btn');
+            elScrollToForm = document.getElementById('cart-scroll-to-form');
+            elSuccess = document.getElementById('order-success');
+            elSuccessNumber = document.getElementById('success-order-number');
+            elSuccessDemoNote = document.getElementById('success-demo-note');
+            elSuccessDemoSpacer = document.getElementById('success-demo-spacer');
+        }
+
+        /* ------------------------------------------------------------------
+         *  РАЗМЕТКА ОДНОЙ СТРОКИ ЗАКАЗА
+         * ------------------------------------------------------------------ */
+        function rowMarkup(item) {
+            var priceText;
+            var totalText;
+
+            if (item.isOnRequest) {
+                priceText = 'Цена по запросу';
+                totalText = 'По запросу';
+            } else {
+                priceText = Cart.formatPrice(item.price) + ' / ' + esc(item.unitLabel.toLowerCase());
+                totalText = Cart.formatPrice(item.lineTotal);
+            }
+
+            var rowClass = 'cart-row border-b border-white/10 last:border-b-0';
+
+            return '' +
+                '<div class="' + rowClass + '" data-product-id="' + esc(item.id) + '" data-unit-key="' + esc(item.unitKey) + '">' +
+                    '<div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-4 px-5 md:px-7 py-5 items-center">' +
+
+                        // --- Товар ---
+                        '<div class="md:col-span-6 flex items-start gap-4">' +
+                            '<div class="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 bg-brand-darker rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">' +
+                                '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" class="w-full h-full object-contain p-1.5" loading="lazy" ' +
+                                     'onerror="this.onerror=null;this.src=\'' + NO_PHOTO + '\';">' +
+                            '</div>' +
+                            '<div class="min-w-0 flex-grow">' +
+                                '<a href="catalog.html" class="block text-base md:text-lg font-bold text-white hover:text-brand-cyan transition-colors leading-snug">' + esc(item.name) + '</a>' +
+                                (item.subtitle ? '<p class="text-xs text-gray-500 mt-0.5">' + esc(item.subtitle) + '</p>' : '') +
+                                '<p class="text-sm text-brand-cyan font-medium mt-2">' + esc(item.unitLabel) + '</p>' +
+                                '<p class="text-xs text-gray-500 mt-1">' + priceText + '</p>' +
+                            '</div>' +
+                        '</div>' +
+
+                        // --- Количество ---
+                        '<div class="md:col-span-3 flex md:justify-center">' +
+                            '<div class="inline-flex items-center bg-brand-darker border border-white/10 rounded-xl overflow-hidden">' +
+                                '<button type="button" data-cart-action="dec" class="w-10 h-11 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/5 transition-colors" aria-label="Уменьшить количество">' +
+                                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path></svg>' +
+                                '</button>' +
+                                '<input type="number" min="1" step="1" inputmode="numeric" data-cart-action="qty" value="' + item.qty + '" ' +
+                                       'class="w-14 h-11 bg-transparent text-center text-white font-medium focus:outline-none" ' +
+                                       'aria-label="Количество для ' + esc(item.name) + '">' +
+                                '<button type="button" data-cart-action="inc" class="w-10 h-11 flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/5 transition-colors" aria-label="Увеличить количество">' +
+                                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+
+                        // --- Сумма ---
+                        '<div class="md:col-span-2 md:text-right">' +
+                            '<span class="text-xs uppercase tracking-wider text-gray-500 md:hidden mr-2">Сумма</span>' +
+                            '<span class="text-lg font-bold ' + (item.isOnRequest ? 'text-gray-400' : 'text-white') + '" data-line-total>' + totalText + '</span>' +
+                        '</div>' +
+
+                        // --- Удалить ---
+                        '<div class="md:col-span-1 flex md:justify-end">' +
+                            '<button type="button" data-cart-action="remove" class="p-2.5 text-gray-500 hover:text-brand-pink hover:bg-brand-pink/10 rounded-lg transition-colors" aria-label="Удалить ' + esc(item.name) + ' из корзины">' +
+                                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' +
+                            '</button>' +
+                        '</div>' +
+
+                    '</div>' +
+                '</div>';
+        }
+
+        /* ------------------------------------------------------------------
+         *  ПЕРЕРИСОВКА КОРЗИНЫ
+         * ------------------------------------------------------------------ */
+        function render() {
+            if (!elRows) return;
+
+            var items = Cart.items();
+
+            // --- Пустая корзина ---
+            if (!items.length) {
+                elRows.innerHTML = '';
+                elMain.classList.add('hidden');
+                elEmpty.classList.remove('hidden');
+                return;
+            }
+
+            elEmpty.classList.add('hidden');
+            elMain.classList.remove('hidden');
+
+            // --- Строки ---
+            var html = '';
+            for (var i = 0; i < items.length; i++) {
+                html += rowMarkup(items[i]);
+            }
+            elRows.innerHTML = html;
+
+            updateSummary();
+        }
+
+        /* Пересчёт итогов без перерисовки строк. */
+        function updateSummary() {
+            var items = Cart.items();
+            var subtotal = 0;
+            var units = 0;
+            var onRequest = false;
+
+            for (var i = 0; i < items.length; i++) {
+                subtotal += items[i].lineTotal;
+                units += items[i].qty;
+                if (items[i].isOnRequest) onRequest = true;
+            }
+
+            if (elSubtotal) elSubtotal.textContent = Cart.formatPrice(subtotal) || ('0' + NBSP + RUB);
+            if (elTotal) elTotal.textContent = Cart.formatPrice(subtotal) || ('0' + NBSP + RUB);
+            if (elLines) elLines.textContent = String(items.length);
+            if (elUnits) elUnits.textContent = String(units);
+
+            if (elOnRequestNote) {
+                elOnRequestNote.classList.toggle('hidden', !onRequest);
+            }
+        }
+
+        /* Рисуем строку заново — нужно после правки количества из поля ввода. */
+        function refreshRows() {
+            var items = Cart.items();
+            if (!items.length) {
+                render();
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < items.length; i++) {
+                html += rowMarkup(items[i]);
+            }
+            elRows.innerHTML = html;
+            updateSummary();
+        }
+
+        /* ------------------------------------------------------------------
+         *  ДЕЙСТВИЯ
+         * ------------------------------------------------------------------ */
+
+        /* Удаление строки с анимацией. */
+        function removeLine(row, productId, unitKey) {
+            var finish = function () {
+                Cart.remove(productId, unitKey);
+                // render() перерисует список или покажет пустое состояние.
+                render();
+            };
+
+            if (!row) { finish(); return; }
+
+            row.classList.add('cart-row-removing');
+            var done = false;
+            var once = function () {
+                if (done) return;
+                done = true;
+                finish();
+            };
+            row.addEventListener('transitionend', once, { once: true });
+            // Подстраховка, если transitionend не сработает.
+            setTimeout(once, 320);
+        }
+
+        /* Изменение количества на delta (+1 / -1). */
+        function changeQty(row, delta) {
+            if (!row) return;
+
+            var productId = row.getAttribute('data-product-id');
+            var unitKey = row.getAttribute('data-unit-key');
+            var input = row.querySelector('[data-cart-action="qty"]');
+            var current = input ? parseInt(input.value, 10) : 1;
+            if (!isFinite(current) || current < 1) current = 1;
+
+            var next = current + delta;
+
+            if (next < 1) {
+                removeLine(row, productId, unitKey);
+                return;
+            }
+
+            Cart.setQty(productId, unitKey, next);
+
+            if (input) input.value = next;
+            updateLineTotal(row, productId, unitKey);
+            updateSummary();
+        }
+
+        /* Прямой ввод количества в поле. */
+        function setQtyFromInput(row, input) {
+            if (!row || !input) return;
+
+            var productId = row.getAttribute('data-product-id');
+            var unitKey = row.getAttribute('data-unit-key');
+            var value = parseInt(input.value, 10);
+
+            if (!isFinite(value) || value < 1) {
+                // Некорректный ввод — возвращаем прежнее значение.
+                var items = Cart.items();
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].id === productId && items[i].unitKey === unitKey) {
+                        input.value = items[i].qty;
+                        break;
+                    }
+                }
+                return;
+            }
+
+            Cart.setQty(productId, unitKey, value);
+            refreshRows();
+        }
+
+        /* Обновляет сумму в одной строке, не трогая всю таблицу. */
+        function updateLineTotal(row, productId, unitKey) {
+            var items = Cart.items();
+            var target = null;
+
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].id === productId && items[i].unitKey === unitKey) {
+                    target = items[i];
+                    break;
+                }
+            }
+
+            if (!target) return;
+
+            var cell = row.querySelector('[data-line-total]');
+            if (cell) {
+                cell.textContent = target.isOnRequest ? 'По запросу' : Cart.formatPrice(target.lineTotal);
+                cell.className = 'text-lg font-bold ' + (target.isOnRequest ? 'text-gray-400' : 'text-white');
+            }
+        }
+
+        /* ------------------------------------------------------------------
+         *  СОБЫТИЯ
+         * ------------------------------------------------------------------ */
+        function bindEvents() {
+            // Делегирование клика по кнопкам строк.
+            elRows.addEventListener('click', function (e) {
+                var trigger = e.target.closest ? e.target.closest('[data-cart-action]') : null;
+                if (!trigger) return;
+
+                var action = trigger.getAttribute('data-cart-action');
+                if (action === 'qty') return; // поле ввода — не кнопка
+
+                var row = trigger.closest('.cart-row');
+                if (!row) return;
+
+                if (action === 'inc') {
+                    changeQty(row, 1);
+                } else if (action === 'dec') {
+                    changeQty(row, -1);
+                } else if (action === 'remove') {
+                    removeLine(row, row.getAttribute('data-product-id'), row.getAttribute('data-unit-key'));
+                }
+            });
+
+            // Правка количества вручную.
+            elRows.addEventListener('change', function (e) {
+                var input = e.target;
+                if (!input || input.getAttribute('data-cart-action') !== 'qty') return;
+                setQtyFromInput(input.closest('.cart-row'), input);
+            });
+
+            elRows.addEventListener('keydown', function (e) {
+                var input = e.target;
+                if (!input || input.getAttribute('data-cart-action') !== 'qty') return;
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+            });
+
+            // Очистить корзину целиком.
+            if (elClearBtn) {
+                elClearBtn.addEventListener('click', function () {
+                    var items = Cart.items();
+                    if (!items.length) return;
+
+                    var ok = window.confirm('Удалить все товары из корзины? Действие нельзя отменить.');
+                    if (!ok) return;
+
+                    Cart.clear();
+                    render();
+                });
+            }
+
+            // Кнопка «Перейти к оформлению» в блоке итогов.
+            if (elScrollToForm) {
+                elScrollToForm.addEventListener('click', function () {
+                    var target = document.getElementById('checkout');
+                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+
+            // Если корзину поменяли в другой вкладке — перерисуем таблицу.
+            window.addEventListener('storage', function (e) {
+                if (e && e.key === Cart.STORAGE_KEY) render();
+            });
+        }
+
+        /* ------------------------------------------------------------------
+         *  СТАРТ
+         * ------------------------------------------------------------------ */
+        function init() {
+            cacheElements();
+            if (!elRows) return;
+
+            bindEvents();
+            render();
+
+            // Бейдж в шапке обновляется сам (cart.js вызывает watch()),
+            // но при возврате на страницу из кэша перерисуем принудительно.
+            Cart.updateBadge();
+        }
+
+        // Если корзину изменили в другой вкладке или другим скриптом,
+        // синхронизируем таблицу. Свои изменения мы уже отрисовали.
+        window.addEventListener(Cart.EVENT_NAME, function () {
+            window.setTimeout(function () {
+                if (!elRows) return;
+                var rows = elRows.querySelectorAll('.cart-row').length;
+                var items = Cart.items().length;
+                if (rows !== items) render();
+                else updateSummary();
+            }, 30);
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+    })(window, document);
+    </script>

@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог — Lumistek</title>
+    <meta name="description" content="Каталог Lumistek: антигравийные полиуретановые плёнки (PPF), тонировочные плёнки, защита лобового стекла и оптики. Цены за рулон и за метр.">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="canonical" href="https://lumistek.ru/catalog.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Lumistek">
+    <meta property="og:title" content="Каталог — Lumistek">
+    <meta property="og:description" content="Антигравийные полиуретановые плёнки (PPF), тонировочные плёнки, защита лобового стекла и оптики. Цены за рулон и за метр.">
+    <meta property="og:url" content="https://lumistek.ru/catalog.html">
+    <meta property="og:image" content="https://lumistek.ru/logo.png?v=2">
+    <meta property="og:locale" content="ru_RU">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Каталог — Lumistek">
+    <meta name="twitter:description" content="Антигравийные полиуретановые плёнки (PPF), тонировочные плёнки, защита лобового стекла и оптики.">
+    <meta name="twitter:image" content="https://lumistek.ru/logo.png?v=2">
+
+    <link rel="icon" type="image/png" href="logo.png?v=2">
+    <link rel="apple-touch-icon" href="logo.png?v=2">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            cyan: '#1cb0c6',   
+                            blue: '#1b75bc',   
+                            pink: '#f2668b',   
+                            dark: '#111111',
+                            darker: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; }
+
+        .btn-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(28, 176, 198, 0.5);
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Стили для скроллбара (в модалке политики) */
+        .desc-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .desc-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .desc-scroll::-webkit-scrollbar-thumb {
+            background: rgba(28, 176, 198, 0.5);
+            border-radius: 4px;
+        }
+
+        /* Скрываем полосу прокрутки у фильтров (скролл остаётся) */
+        .hide-scroll-bar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scroll-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Отступ при переходе по ссылкам меню: навбар фиксированный */
+        section[id], footer[id] {
+            scroll-margin-top: 5rem;
+        }
+        @media (min-width: 768px) {
+            section[id], footer[id] {
+                scroll-margin-top: 6rem;
+            }
+        }
+
+        /* ---- Описание товара: 3 строки в свёрнутом виде ---- */
+        .desc-clamp {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ---- Кнопки-варианты покупки (радио из кнопок) ---- */
+        .unit-option {
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+        .unit-option[aria-checked="true"] {
+            border-color: #1cb0c6;
+            background-color: rgba(28, 176, 198, 0.12);
+        }
+        .unit-dot {
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+        .unit-option[aria-checked="true"] .unit-dot {
+            border-color: #1cb0c6;
+            background-color: #1cb0c6;
+            box-shadow: inset 0 0 0 3px #111111;
+        }
+
+        /* ---- Кнопки категорий ---- */
+        .cat-btn.is-active {
+            background-color: #1cb0c6;
+            border-color: #1cb0c6;
+            color: #ffffff;
+        }
+
+        /* Спрятанные карточки не должны ломать сетку */
+        .product-hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-brand-darker text-white font-sans antialiased overflow-x-hidden">
+
+    <!-- Навигация -->
+    <nav class="fixed w-full z-40 bg-brand-darker/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16 md:h-20">
+                <a href="index.html" class="flex-shrink-0 flex items-center">
+                    <img src="logo.png?v=2" alt="LUMISTEK" class="h-10 md:h-12 w-auto object-contain">
+                </a>
+
+                <div class="hidden md:flex space-x-6 lg:space-x-8">
+                    <a href="index.html#about" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">О компании</a>
+                    <a href="catalog.html" class="text-sm lg:text-base text-brand-cyan font-semibold transition-colors" aria-current="page">Каталог</a>
+                    <a href="index.html#news" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Новости</a>
+                    <a href="index.html#gallery" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Наши работы</a>
+                    <a href="index.html#contacts" class="text-sm lg:text-base text-gray-300 hover:text-white transition-colors">Контакты</a>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="cart.html" class="relative flex items-center gap-2 border border-white/15 hover:border-brand-cyan text-gray-300 hover:text-white px-4 py-2 rounded-full text-sm font-medium transition-all" aria-label="Корзина">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        <span>Корзина</span>
+                        <span id="cart-count" class="hidden absolute -top-2 -right-2 min-w-[1.25rem] h-5 px-1 rounded-full bg-brand-pink text-white text-xs font-bold leading-5 text-center" aria-hidden="true">0</span>
+                    </a>
+                    <a href="tel:+79917184442" class="border border-brand-cyan text-brand-cyan hover:bg-brand-cyan hover:text-white px-5 py-2 rounded-full text-sm font-medium transition-all">
+                        +7 (991) 718-44-42
+                    </a>
+                </div>
+
+                <div class="md:hidden flex items-center space-x-1">
+                    <a href="cart.html" class="relative p-2 text-gray-300 hover:text-white transition-colors" aria-label="Корзина">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        <span id="cart-count" class="hidden absolute top-0 right-0 min-w-[1.15rem] h-[1.15rem] px-1 rounded-full bg-brand-pink text-white text-[10px] font-bold leading-[1.15rem] text-center" aria-hidden="true">0</span>
+                    </a>
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none p-2" aria-label="Меню">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path id="menu-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div id="mobile-menu" class="hidden md:hidden bg-brand-darker border-b border-white/10 absolute w-full shadow-2xl">
+            <div class="px-4 pt-2 pb-6 space-y-3">
+                <a href="index.html#about" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">О компании</a>
+                <a href="catalog.html" class="block px-3 py-3 text-lg font-medium text-brand-cyan hover:bg-white/5 rounded-md">Каталог</a>
+                <a href="index.html#news" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Новости</a>
+                <a href="index.html#gallery" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Наши работы</a>
+                <a href="index.html#contacts" class="block px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">Контакты</a>
+
+                <a href="cart.html" class="flex items-center justify-between px-3 py-3 text-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-md">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                        Корзина
+                    </span>
+                    <span id="cart-count" class="hidden min-w-[1.5rem] h-6 px-1.5 rounded-full bg-brand-pink text-white text-xs font-bold leading-6 text-center" aria-hidden="true">0</span>
+                </a>
+
+                <a href="tel:+79917184442" class="block mt-6 text-center border-2 border-brand-cyan text-brand-cyan hover:bg-brand-cyan hover:text-white px-6 py-3 rounded-xl font-bold transition-all">
+                    +7 (991) 718-44-42
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Шапка каталога -->
+    <section class="pt-24 md:pt-32 pb-6 md:pb-8 bg-brand-darker border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="text-xs md:text-sm text-gray-500 mb-4" aria-label="Хлебные крошки">
+                <a href="index.html" class="hover:text-brand-cyan transition-colors">Главная</a>
+                <span class="mx-2">/</span>
+                <span class="text-gray-400">Каталог</span>
+            </nav>
+
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">Каталог Lumistek</h1>
+            <div class="w-24 h-1 bg-gradient-to-r from-brand-pink via-brand-cyan to-brand-blue rounded-full mb-6"></div>
+            <p class="text-gray-400 max-w-2xl mb-8">
+                Антигравийные полиуретановые плёнки, тонировочные материалы, защита лобового стекла и оптики. Выберите раздел или найдите продукт по названию.
+            </p>
+
+            <div class="max-w-xl">
+                <label for="catalog-search" class="sr-only">Поиск по каталогу</label>
+                <div class="relative">
+                    <svg class="w-5 h-5 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path>
+                    </svg>
+                    <input type="search" id="catalog-search" autocomplete="off" placeholder="Поиск по каталогу…"
+                           class="w-full bg-brand-dark border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan transition-colors">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Фильтры + товары -->
+    <section id="catalog" class="py-8 md:py-12 bg-brand-darker">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Кнопки категорий -->
+            <div class="mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div id="catalog-filters" class="flex flex-nowrap gap-3 overflow-x-auto hide-scroll-bar pb-2" role="tablist" aria-label="Разделы каталога"></div>
+            </div>
+
+            <!-- Сетка товаров -->
+            <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"></div>
+
+            <!-- Пустой результат -->
+            <div id="catalog-empty" class="hidden text-center py-20 px-4">
+                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-3">Ничего не найдено</h2>
+                <p class="text-gray-400 mb-8">По вашему запросу нет товаров. Попробуйте изменить запрос или выбрать другой раздел.</p>
+                <button type="button" id="catalog-reset" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-8 py-3 rounded-xl font-medium transition-colors">
+                    Сбросить фильтры
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Призыв к действию -->
+    <section class="py-12 md:py-16 bg-brand-dark">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">Нужен опт или консультация по материалу?</h2>
+            <p class="text-gray-400 mb-8">Оставьте заявку — подберём плёнку под ваш климат, объём и бюджет.</p>
+            <button type="button" id="cta-lead" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-8 py-4 rounded-full font-bold btn-hover-effect transition-all">
+                Оставить заявку
+            </button>
+        </div>
+    </section>
+
+    <!-- Подвал / Контакты -->
+    <footer id="contacts" class="bg-brand-darker border-t border-white/10 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-12">
+                <!-- Логотип, описание -->
+                <div class="col-span-1 lg:col-span-3 text-center lg:text-left">
+                    <div class="flex items-center justify-center lg:justify-start mb-6">
+                        <img src="logo.png?v=2" alt="LUMISTEK" class="h-10 w-auto object-contain">
+                    </div>
+                    <p class="text-gray-400 mb-6 max-w-md mx-auto lg:mx-0 text-sm md:text-base">
+                        Lumistek — это инновационные решения в сфере антигравийных полиуретановых пленок. Мы предлагаем продукт премиум-класса, произведенный в Южной Корее.
+                    </p>
+                    <a href="tel:+79917184442" class="text-2xl font-bold text-white hover:text-brand-cyan transition-colors inline-block mb-4">
+                        +7 (991) 718-44-42
+                    </a>
+                </div>
+
+                <!-- Филиалы -->
+                <div class="col-span-1 lg:col-span-9">
+                    <h4 class="text-xl font-bold mb-8 text-white text-center lg:text-left">Наши представительства</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left">
+                        <!-- Москва -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Москва</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Видное, Белокаменное шоссе 20<br>БЦ Видный</p>
+                            <a href="tel:+79917184442" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (991) 718-44-42</a>
+                        </div>
+
+                        <!-- Уфа -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Уфа</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Коммунистическая 116<br>БЦ Вафа</p>
+                            <a href="tel:+79373401024" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (937) 340-10-24</a>
+                        </div>
+
+                        <!-- Самара -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Самара</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">Московское шоссе 4а стр 1<br>БЦ Скала холл</p>
+                            <a href="tel:+79958320852" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (995) 832-08-52</a>
+                        </div>
+
+                        <!-- Ереван -->
+                        <div>
+                            <div class="flex items-center justify-center sm:justify-start mb-2">
+                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <h5 class="text-white font-bold text-lg">Ереван</h5>
+                            </div>
+                            <p class="text-gray-400 text-sm mb-3">ул. Арташисян, 81/1<br>&nbsp;</p>
+                            <a href="tel:+37433044410" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+374 33 044 410</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-500 text-sm text-center md:text-left">© 2024 Lumistek. Все права защищены.</p>
+
+                <div class="text-gray-500 text-sm text-center">
+                    Сайт разработал <a href="https://t.me/s777official" target="_blank" class="text-brand-cyan hover:text-white transition-colors">@s777official</a>
+                </div>
+
+                <div class="flex space-x-6">
+                    <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-gray-500 hover:text-white text-sm transition-colors text-center md:text-right">Политика конфиденциальности</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Плашка Cookie -->
+    <div id="cookie-banner" class="fixed bottom-0 left-0 w-full bg-brand-darker border-t border-brand-cyan/30 p-4 z-50 transform transition-transform duration-500 translate-y-full shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-gray-400 text-sm text-center sm:text-left leading-relaxed">
+                Мы используем файлы cookie для улучшения работы сайта. Продолжая использовать сайт, вы соглашаетесь с нашей 
+                <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-brand-cyan hover:underline">Политикой конфиденциальности</a>.
+            </p>
+            <button onclick="acceptCookies()" class="bg-brand-cyan hover:bg-brand-cyan/80 text-white px-8 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap shadow-lg">
+                Понятно
+            </button>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Заявка -->
+    <div id="lead-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+
+        <div class="relative bg-brand-darker border border-white/10 p-6 md:p-10 rounded-2xl w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300" id="modal-content">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2" aria-label="Закрыть">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <h3 class="text-3xl font-bold text-white mb-2">Оставить заявку</h3>
+            <p class="text-gray-400 text-sm mb-8">Оставьте свои данные, и наши менеджеры свяжутся с вами в ближайшее время.</p>
+
+            <form id="lead-form" class="space-y-5" onsubmit="submitForm(event)">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Ваше ФИО</label>
+                    <input type="text" id="form-name" required class="w-full bg-brand-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors" placeholder="Иванов Иван Иванович">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Ваш Город</label>
+                    <input type="text" id="form-city" required class="w-full bg-brand-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors" placeholder="Москва">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1.5 ml-1">Номер телефона</label>
+                    <input type="tel" id="form-phone" required class="w-full bg-brand-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan transition-colors" placeholder="+7 (999) 000-00-00">
+                </div>
+
+                <p class="text-xs text-gray-500 text-center mt-4">
+                    Нажимая кнопку «Отправить», вы соглашаетесь с <a href="javascript:void(0)" onclick="openPrivacyModal()" class="text-brand-cyan hover:underline">Политикой обработки персональных данных</a>.
+                </p>
+
+                <button type="submit" class="w-full bg-brand-cyan hover:bg-brand-cyan/80 text-white py-4 rounded-xl font-bold transition-colors mt-2 text-lg" id="submit-btn">
+                    Отправить
+                </button>
+                <p id="form-status" class="text-sm text-center hidden mt-4"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Политика конфиденциальности -->
+    <div id="privacy-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4 py-6">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closePrivacyModal()"></div>
+
+        <div class="relative bg-brand-darker border border-white/10 p-6 md:p-8 rounded-2xl w-full max-w-3xl shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-full" id="privacy-modal-content">
+            <button onclick="closePrivacyModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white p-2 z-10 bg-brand-darker rounded-full" aria-label="Закрыть">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <h3 class="text-2xl font-bold text-white mb-6 pr-8 shrink-0">Политика конфиденциальности и обработки персональных данных</h3>
+
+            <div class="overflow-y-auto desc-scroll pr-4 text-gray-400 text-sm space-y-4 flex-grow">
+                <p>Настоящая Политика конфиденциальности определяет порядок обработки и защиты персональной информации о пользователях, которую может получить сайт Lumistek во время его использования.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">1. Общие положения</h4>
+                <p>1.1. Использование сайта означает безоговорочное согласие пользователя с настоящей Политикой и указанными в ней условиями обработки его персональной информации.<br>
+                1.2. В случае несогласия с этими условиями пользователь должен воздержаться от использования сайта.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">2. Персональная информация пользователей</h4>
+                <p>2.1. В рамках настоящей Политики под «персональной информацией пользователя» понимаются:<br>
+                — Персональная информация, которую пользователь предоставляет о себе самостоятельно при оставлении заявки (ФИО, номер телефона, город).<br>
+                — Данные, которые автоматически передаются сервисам сайта в процессе их использования с помощью установленного на устройстве пользователя программного обеспечения, в том числе IP-адрес, данные файлов cookie, информация о браузере пользователя.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">3. Цели сбора персональной информации</h4>
+                <p>Сайт собирает и хранит только ту персональную информацию, которая необходима для предоставления сервисов или исполнения соглашений и договоров с пользователем, а именно для:<br>
+                — Установления с пользователем обратной связи, включая направление уведомлений, запросов, касающихся использования сайта, оказания услуг, обработки запросов и заявок.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">4. Файлы Cookie</h4>
+                <p>Сайт использует файлы cookie и схожие технологии (пиксели, веб-маяки) для обеспечения максимального удобства пользователей, предоставляя персонализированную информацию. Продолжая использование сайта, вы даете согласие на использование файлов cookie.</p>
+
+                <h4 class="text-white font-bold mt-4 mb-2">5. Защита информации</h4>
+                <p>Сайт принимает необходимые и достаточные организационные и технические меры для защиты персональной информации пользователя от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования, распространения, а также от иных неправомерных действий с ней третьих лиц.</p>
+            </div>
+
+            <div class="shrink-0 mt-6 pt-4 border-t border-white/10 text-center">
+                <button onclick="closePrivacyModal()" class="bg-white/10 hover:bg-white/20 text-white px-8 py-2.5 rounded-xl font-medium transition-colors">Закрыть окно</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         СКРИПТЫ
+         Порядок важен:
+           1. catalog.js — данные о товарах (window.LUMISTEK_CATALOG)
+           2. cart.js    — корзина и бейдж в шапке (window.LumistekCart)
+           3. обычный <script> — логика этой страницы
+         ES-модули не используются: страница должна открываться и как файл.
+         ==================================================================== -->
+    <script src="assets/js/catalog.js"></script>
+    <script src="assets/js/cart.js"></script>
+
+    <script>
+        // ================================================================
+        //  КАТАЛОГ — логика страницы
+        // ================================================================
+        //  Разметка собирается конкатенацией строк, а не шаблонными
+        //  литералами: так страницу не ломают ни редакторы, ни парсеры.
+        // ================================================================
+
+        (function () {
+            'use strict';
+
+            // ---------- Данные ----------
+            var CATALOG = window.LUMISTEK_CATALOG || { categories: [], products: [] };
+            var CART = window.LumistekCart;
+
+            // ---------- Цвета плашек ----------
+            // ВАЖНО: динамические классы вида 'text-' + badge с Tailwind CDN
+            // НЕ работают — CDN сканирует разметку один раз при загрузке и не
+            // увидит классы, добавленные позже из JS. Поэтому цвета задаём
+            // явными inline-стилями через карту ниже.
+            var BADGE_COLORS = {
+                'brand-cyan': '#1cb0c6',
+                'brand-pink': '#f2668b',
+                'brand-blue': '#1b75bc'
+            };
+
+            function badgeStyle(name) {
+                var bg = BADGE_COLORS[name] || BADGE_COLORS['brand-cyan'];
+                return 'background-color:' + bg + ';color:#ffffff;';
+            }
+
+            // ---------- Состояние страницы ----------
+            var activeCat = 'all';   // 'all' либо ключ категории
+            var searchQuery = '';    // строка поиска в нижнем регистре
+            var selectedUnits = {};  // { productId: unitKey }
+
+            // ---------- Элементы ----------
+            var filtersEl = document.getElementById('catalog-filters');
+            var gridEl = document.getElementById('catalog-grid');
+            var emptyEl = document.getElementById('catalog-empty');
+            var searchEl = document.getElementById('catalog-search');
+            var resetEl = document.getElementById('catalog-reset');
+
+            // ================================================================
+            //  ВСПОМОГАТЕЛЬНОЕ
+            // ================================================================
+
+            /** Экранирование текста перед вставкой в HTML. */
+            function esc(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            /**
+             * Описание товара. В каталоге разрешены только безопасные теги
+             * <br> — их возвращаем обратно, всё остальное остаётся текстом.
+             */
+            function descHtml(str) {
+                return esc(str).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+            }
+
+            /** HTML цены: сумма либо подпись «Цена по запросу». */
+            function priceHtml(unit) {
+                if (CART.isPriceOnRequest(unit.price)) {
+                    var note = unit.note || 'Цена по запросу';
+                    return '<span class="text-gray-500 text-lg font-medium">' + esc(note) + '</span>';
+                }
+                return '<span class="text-2xl font-bold text-white">' + esc(CART.formatPrice(unit.price)) + '</span>';
+            }
+
+            // ================================================================
+            //  ФИЛЬТРЫ
+            // ================================================================
+
+            function renderFilters() {
+                var html = '';
+
+                // «Все» — всегда первая и активная по умолчанию.
+                html += '<button type="button" class="cat-btn is-active shrink-0 whitespace-nowrap border border-white/15 bg-white/5 hover:border-brand-cyan text-gray-300 hover:text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all" data-cat="all" role="tab" aria-selected="true">Все</button>';
+
+                var cats = CATALOG.categories || [];
+                for (var i = 0; i < cats.length; i++) {
+                    html += '<button type="button" class="cat-btn shrink-0 whitespace-nowrap border border-white/15 bg-white/5 hover:border-brand-cyan text-gray-300 hover:text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all" data-cat="' + esc(cats[i].key) + '" role="tab" aria-selected="false">' + esc(cats[i].title) + '</button>';
+                }
+
+                filtersEl.innerHTML = html;
+            }
+
+            function setActiveCat(cat) {
+                activeCat = cat || 'all';
+
+                var buttons = filtersEl.querySelectorAll('.cat-btn');
+                for (var i = 0; i < buttons.length; i++) {
+                    var on = (buttons[i].getAttribute('data-cat') === activeCat);
+                    buttons[i].classList.toggle('is-active', on);
+                    buttons[i].setAttribute('aria-selected', on ? 'true' : 'false');
+                }
+            }
+
+            // ================================================================
+            //  КАРТОЧКА ТОВАРА
+            // ================================================================
+
+            function renderCard(p) {
+                var units = p.units || [];
+
+                if (!selectedUnits[p.id] && units.length) {
+                    selectedUnits[p.id] = units[0].key;   // по умолчанию первый
+                }
+
+                // --- Радио-кнопки вариантов покупки ---
+                var unitsHtml = '';
+                for (var u = 0; u < units.length; u++) {
+                    var unit = units[u];
+                    var checked = (unit.key === selectedUnits[p.id]);
+
+                    unitsHtml += '<button type="button" class="unit-option w-full flex items-start gap-3 text-left border border-white/10 bg-white/5 hover:border-brand-cyan/60 rounded-xl px-3 py-2.5" ' +
+                        'role="radio" aria-checked="' + (checked ? 'true' : 'false') + '" tabindex="' + (checked ? '0' : '-1') + '" ' +
+                        'data-unit="' + esc(unit.key) + '" data-product="' + esc(p.id) + '">' +
+                        '<span class="unit-dot mt-1 w-4 h-4 shrink-0 rounded-full border-2 border-gray-500" aria-hidden="true"></span>' +
+                        '<span class="min-w-0 flex-1">' +
+                            '<span class="block text-sm text-white leading-snug">' + esc(unit.label) + '</span>' +
+                            (unit.note ? '<span class="block text-xs text-gray-500 mt-0.5">' + esc(unit.note) + '</span>' : '') +
+                        '</span>' +
+                    '</button>';
+                }
+
+                // --- Чипы характеристик ---
+                var specHtml = '';
+                var specs = p.spec || [];
+                for (var s = 0; s < specs.length; s++) {
+                    specHtml += '<span class="inline-block bg-white/5 border border-white/10 text-gray-400 text-xs px-2.5 py-1 rounded-full">' + esc(specs[s]) + '</span>';
+                }
+
+                // --- Исходный вариант, цена и подпись кнопки ---
+                var current = null;
+                for (var k = 0; k < units.length; k++) {
+                    if (units[k].key === selectedUnits[p.id]) { current = units[k]; break; }
+                }
+                if (!current && units.length) current = units[0];
+
+                var onRequest = current ? CART.isPriceOnRequest(current.price) : true;
+
+                var html = '' +
+                '<article class="product-card card-hover flex flex-col bg-brand-dark rounded-2xl border border-white/10 overflow-hidden shadow-xl" data-id="' + esc(p.id) + '" data-category="' + esc(p.category) + '">' +
+
+                    // Фото в фиксированной пропорции + градиент снизу
+                    '<div class="relative aspect-[4/5] overflow-hidden bg-brand-darker">' +
+                        '<img src="' + esc(p.image) + '" alt="' + esc(p.name) + '" loading="lazy" class="w-full h-full object-cover">' +
+                        '<div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-brand-dark via-brand-dark/60 to-transparent pointer-events-none"></div>' +
+                        (p.badge ? '<span class="absolute top-4 left-4 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full" style="' + badgeStyle(p.badge) + '">' + esc(p.subtitle || p.name) + '</span>' : '') +
+                    '</div>' +
+
+                    // Текст
+                    '<div class="flex flex-col flex-grow p-5 md:p-6">' +
+                        '<h3 class="text-xl font-bold text-white mb-1">' + esc(p.name) + '</h3>' +
+                        '<p class="text-brand-cyan text-xs font-semibold uppercase tracking-wider mb-3">' + esc(p.subtitle || '') + '</p>' +
+
+                        // Описание: 3 строки + «Подробнее / Свернуть»
+                        '<div class="mb-4">' +
+                            '<p class="product-desc desc-clamp text-gray-400 text-sm leading-relaxed">' + descHtml(p.description) + '</p>' +
+                            '<button type="button" class="desc-toggle text-brand-cyan hover:text-white text-xs font-medium mt-2 transition-colors" data-expanded="false" aria-expanded="false">Подробнее</button>' +
+                        '</div>' +
+
+                        // Характеристики
+                        (specHtml ? '<div class="flex flex-wrap gap-1.5 mb-4">' + specHtml + '</div>' : '') +
+
+                        // Варианты покупки
+                        (unitsHtml ? '<div class="space-y-2 mb-4" role="radiogroup" aria-label="Вариант покупки">' + unitsHtml + '</div>' : '') +
+
+                        // Цена и кнопка — прижаты к низу карточки
+                        '<div class="mt-auto pt-4 border-t border-white/10">' +
+                            '<div class="flex items-center justify-between gap-3 mb-4">' +
+                                '<span class="text-xs text-gray-500 uppercase tracking-wider">Цена</span>' +
+                                '<span class="product-price text-right">' + (current ? priceHtml(current) : '') + '</span>' +
+                            '</div>' +
+                            '<button type="button" class="add-to-cart w-full bg-brand-cyan hover:bg-brand-cyan/80 text-white py-3 rounded-xl font-medium transition-colors" data-mode="' + (onRequest ? 'lead' : 'cart') + '">' +
+                                (onRequest ? 'Уточнить цену' : 'В корзину') +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</article>';
+
+                return html;
+            }
+
+            // ================================================================
+            //  ОТРИСОВКА СПИСКА
+            // ================================================================
+
+            function matchesSearch(p, q) {
+                if (!q) return true;
+                var haystack = [
+                    p.name, p.subtitle, p.description, (p.spec || []).join(' ')
+                ].join(' ').toLowerCase();
+                return haystack.indexOf(q) !== -1;
+            }
+
+            function render() {
+                var products = CATALOG.products || [];
+                var q = searchQuery.trim().toLowerCase();
+                var html = '';
+                var shown = 0;
+
+                for (var i = 0; i < products.length; i++) {
+                    var p = products[i];
+
+                    if (activeCat !== 'all' && p.category !== activeCat) continue;
+                    if (!matchesSearch(p, q)) continue;
+
+                    html += renderCard(p);
+                    shown++;
+                }
+
+                gridEl.innerHTML = html;
+
+                // Пустой результат
+                if (shown === 0) {
+                    emptyEl.classList.remove('hidden');
+                    gridEl.classList.add('hidden');
+                } else {
+                    emptyEl.classList.add('hidden');
+                    gridEl.classList.remove('hidden');
+                }
+
+                // Фото, которых нет в репозитории, не должны показывать
+                // «битую» иконку — прячем их, градиент и плашка остаются.
+                var imgs = gridEl.querySelectorAll('img');
+                for (var m = 0; m < imgs.length; m++) {
+                    imgs[m].onerror = function () {
+                        this.onerror = null;
+                        this.style.display = 'none';
+                    };
+                }
+            }
+
+            // ================================================================
+            //  ВЫБОР ВАРИАНТА ПОКУПКИ
+            // ================================================================
+
+            function findProductById(id) {
+                var products = CATALOG.products || [];
+                for (var i = 0; i < products.length; i++) {
+                    if (products[i].id === id) return products[i];
+                }
+                return null;
+            }
+
+            function selectUnit(card, unitKey) {
+                var p = findProductById(card.getAttribute('data-id'));
+                if (!p) return;
+
+                selectedUnits[p.id] = unitKey;
+
+                // Состояние всех радио-кнопок карточки
+                var options = card.querySelectorAll('.unit-option');
+                for (var i = 0; i < options.length; i++) {
+                    var on = (options[i].getAttribute('data-unit') === unitKey);
+                    options[i].setAttribute('aria-checked', on ? 'true' : 'false');
+                    options[i].setAttribute('tabindex', on ? '0' : '-1');
+                }
+
+                // Данные выбранного варианта
+                var unit = null;
+                var units = p.units || [];
+                for (var j = 0; j < units.length; j++) {
+                    if (units[j].key === unitKey) { unit = units[j]; break; }
+                }
+                if (!unit) return;
+
+                // Цена
+                var priceBox = card.querySelector('.product-price');
+                if (priceBox) priceBox.innerHTML = priceHtml(unit);
+
+                // Кнопка
+                var btn = card.querySelector('.add-to-cart');
+                if (btn) {
+                    var onRequest = CART.isPriceOnRequest(unit.price);
+                    btn.setAttribute('data-mode', onRequest ? 'lead' : 'cart');
+                    btn.textContent = onRequest ? 'Уточнить цену' : 'В корзину';
+                }
+            }
+
+            /** Перемещение по радио-группе стрелками (доступность). */
+            function moveUnitFocus(card, currentKey, direction) {
+                var options = card.querySelectorAll('.unit-option');
+                var keys = [];
+                for (var i = 0; i < options.length; i++) keys.push(options[i].getAttribute('data-unit'));
+                if (!keys.length) return;
+
+                var idx = keys.indexOf(currentKey);
+                if (idx === -1) idx = 0;
+
+                var next = (idx + direction + keys.length) % keys.length;
+                selectUnit(card, keys[next]);
+
+                for (var j = 0; j < options.length; j++) {
+                    if (options[j].getAttribute('data-unit') === keys[next]) {
+                        options[j].focus();
+                        break;
+                    }
+                }
+            }
+
+            // ================================================================
+            //  ДОБАВЛЕНИЕ В КОРЗИНУ
+            // ================================================================
+
+            function flashButton(btn, text) {
+                if (btn.getAttribute('data-flashing') === '1') return;
+                btn.setAttribute('data-flashing', '1');
+
+                var original = btn.getAttribute('data-label') || btn.textContent;
+                btn.textContent = text;
+
+                window.setTimeout(function () {
+                    btn.textContent = original;
+                    btn.removeAttribute('data-flashing');
+                }, 1400);
+            }
+
+            function handleAddClick(card, btn) {
+                var p = findProductById(card.getAttribute('data-id'));
+                if (!p) return;
+
+                var unitKey = selectedUnits[p.id];
+                if (!unitKey) return;
+
+                var unit = null;
+                var units = p.units || [];
+                for (var i = 0; i < units.length; i++) {
+                    if (units[i].key === unitKey) { unit = units[i]; break; }
+                }
+                if (!unit) return;
+
+                // Цена по запросу -> открываем заявку, в корзину не кладём.
+                if (CART.isPriceOnRequest(unit.price)) {
+                    openLeadModal(p.name + ' — ' + unit.label);
+                    return;
+                }
+
+                CART.add(p.id, unitKey, 1);
+                flashButton(btn, 'Добавлено ✓');
+            }
+
+            // ================================================================
+            //  ОБРАБОТЧИКИ СОБЫТИЙ (делегирование по сетке)
+            // ================================================================
+
+            function bindEvents() {
+                // --- Категории ---
+                filtersEl.addEventListener('click', function (e) {
+                    var btn = e.target.closest ? e.target.closest('.cat-btn') : null;
+                    if (!btn) return;
+
+                    setActiveCat(btn.getAttribute('data-cat'));
+                    render();
+                });
+
+                // --- Поиск ---
+                searchEl.addEventListener('input', function () {
+                    searchQuery = this.value;
+                    render();
+                });
+
+                // --- Сброс фильтров ---
+                resetEl.addEventListener('click', function () {
+                    searchEl.value = '';
+                    searchQuery = '';
+                    setActiveCat('all');
+                    render();
+                    searchEl.focus();
+                });
+
+                // --- Внутри карточек ---
+                gridEl.addEventListener('click', function (e) {
+                    var target = e.target;
+
+                    // 1. «Подробнее / Свернуть»
+                    var toggle = target.closest ? target.closest('.desc-toggle') : null;
+                    if (toggle) {
+                        var card = toggle.closest('.product-card');
+                        var desc = card.querySelector('.product-desc');
+                        var expanded = toggle.getAttribute('data-expanded') === 'true';
+
+                        if (expanded) {
+                            desc.classList.add('desc-clamp');
+                            toggle.textContent = 'Подробнее';
+                            toggle.setAttribute('data-expanded', 'false');
+                            toggle.setAttribute('aria-expanded', 'false');
+                        } else {
+                            desc.classList.remove('desc-clamp');
+                            toggle.textContent = 'Свернуть';
+                            toggle.setAttribute('data-expanded', 'true');
+                            toggle.setAttribute('aria-expanded', 'true');
+                        }
+                        return;
+                    }
+
+                    // 2. Вариант покупки
+                    var option = target.closest ? target.closest('.unit-option') : null;
+                    if (option) {
+                        var unitCard = option.closest('.product-card');
+                        selectUnit(unitCard, option.getAttribute('data-unit'));
+
+                        // Запоминаем подпись кнопки после смены варианта.
+                        var addBtn = unitCard.querySelector('.add-to-cart');
+                        if (addBtn) addBtn.setAttribute('data-label', addBtn.textContent);
+                        return;
+                    }
+
+                    // 3. «В корзину» / «Уточнить цену»
+                    var add = target.closest ? target.closest('.add-to-cart') : null;
+                    if (add) {
+                        handleAddClick(add.closest('.product-card'), add);
+                    }
+                });
+
+                // --- Клавиатура внутри радио-группы ---
+                gridEl.addEventListener('keydown', function (e) {
+                    var option = e.target.closest ? e.target.closest('.unit-option') : null;
+                    if (!option) return;
+
+                    var card = option.closest('.product-card');
+                    var key = option.getAttribute('data-unit');
+
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        moveUnitFocus(card, key, 1);
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        moveUnitFocus(card, key, -1);
+                    } else if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        selectUnit(card, key);
+                    }
+                });
+
+                // --- Кнопка в блоке «Нужен опт» ---
+                var cta = document.getElementById('cta-lead');
+                if (cta) cta.addEventListener('click', function () { openLeadModal(''); });
+
+                // --- Счётчик в шапке обновляется сам (см. cart.js) ---
+                window.addEventListener(CART.EVENT_NAME, function () {
+                    CART.updateBadge();
+                });
+            }
+
+            // ================================================================
+            //  МОДАЛЬНЫЕ ОКНА
+            // ================================================================
+
+            var modal = document.getElementById('lead-modal');
+            var modalContent = document.getElementById('modal-content');
+            var privacyModal = document.getElementById('privacy-modal');
+            var privacyContent = document.getElementById('privacy-modal-content');
+
+            /**
+             * Открывает форму заявки. productLabel — что подставить
+             * в подсказку, если цену нужно уточнить (может быть пустым).
+             */
+            function openLeadModal(productLabel) {
+                var status = document.getElementById('form-status');
+                if (status) status.classList.add('hidden');
+
+                var hint = document.getElementById('lead-context');
+                if (hint) {
+                    if (productLabel) {
+                        hint.textContent = 'Интересует: ' + productLabel;
+                        hint.classList.remove('hidden');
+                    } else {
+                        hint.textContent = '';
+                        hint.classList.add('hidden');
+                    }
+                }
+
+                modal.classList.remove('hidden');
+                window.setTimeout(function () {
+                    modal.classList.remove('opacity-0');
+                    modalContent.classList.remove('scale-95');
+                    modalContent.classList.add('scale-100');
+                }, 10);
+            }
+
+            function closeModal() {
+                modal.classList.add('opacity-0');
+                modalContent.classList.remove('scale-100');
+                modalContent.classList.add('scale-95');
+                window.setTimeout(function () {
+                    modal.classList.add('hidden');
+                    var status = document.getElementById('form-status');
+                    if (status) status.classList.add('hidden');
+                }, 300);
+            }
+
+            function openPrivacyModal() {
+                if (!modal.classList.contains('hidden')) modal.style.zIndex = '40';
+                privacyModal.classList.remove('hidden');
+                window.setTimeout(function () {
+                    privacyModal.classList.remove('opacity-0');
+                    privacyContent.classList.remove('scale-95');
+                    privacyContent.classList.add('scale-100');
+                }, 10);
+            }
+
+            function closePrivacyModal() {
+                privacyModal.classList.add('opacity-0');
+                privacyContent.classList.remove('scale-100');
+                privacyContent.classList.add('scale-95');
+                window.setTimeout(function () {
+                    privacyModal.classList.add('hidden');
+                    modal.style.zIndex = '50';
+                }, 300);
+            }
+
+            // Глобальные функции — на них ссылаются inline-атрибуты в HTML.
+            window.openModal = function () { openLeadModal(''); };
+            window.closeModal = closeModal;
+            window.openPrivacyModal = openPrivacyModal;
+            window.closePrivacyModal = closePrivacyModal;
+
+            // Закрытие по Esc
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Escape') return;
+                if (!privacyModal.classList.contains('hidden')) closePrivacyModal();
+                else if (!modal.classList.contains('hidden')) closeModal();
+            });
+
+            // ================================================================
+            //  ФОРМА ЗАЯВКИ
+            // ================================================================
+
+            // ФОРМА В ТЕСТОВОМ РЕЖИМЕ — как на главной странице.
+            // Реальная отправка в Telegram закомментирована. Токен не выдуман.
+            var botToken = 'ВАШ_ТОКЕН_БОТА';
+            var chatId = 'ВАШ_CHAT_ID';
+
+            function submitForm(e) {
+                e.preventDefault();
+
+                var btn = document.getElementById('submit-btn');
+                var status = document.getElementById('form-status');
+
+                var name = document.getElementById('form-name').value;
+                var city = document.getElementById('form-city').value;
+                var phone = document.getElementById('form-phone').value;
+
+                var hint = document.getElementById('lead-context');
+                var context = (hint && !hint.classList.contains('hidden')) ? hint.textContent : '';
+
+                var text = '🔥 Новая заявка (Сайт Lumistek)!\n\n👤 ФИО: ' + name + '\n🏙 Город: ' + city + '\n📞 Телефон: ' + phone +
+                    (context ? '\n📦 ' + context : '');
+
+                btn.disabled = true;
+                btn.innerText = 'Отправка...';
+                status.classList.remove('hidden');
+
+                // РЕАЛЬНАЯ ОТПРАВКА (раскомментировать, когда будут токен и chat id):
+                /*
+                fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: text })
+                })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('Ошибка сети');
+                    status.innerText = '✅ Заявка успешно отправлена!';
+                    status.className = 'text-sm text-center mt-4 text-green-400 block';
+                    document.getElementById('lead-form').reset();
+                    btn.innerText = 'Отправить';
+                    btn.disabled = false;
+                    setTimeout(closeModal, 2500);
+                })
+                .catch(function () {
+                    status.innerText = '❌ Ошибка отправки. Попробуйте позже.';
+                    status.className = 'text-sm text-center mt-4 text-red-400 block';
+                    btn.innerText = 'Отправить';
+                    btn.disabled = false;
+                });
+                */
+
+                // ТЕСТОВЫЙ РЕЖИМ:
+                window.setTimeout(function () {
+                    status.innerText = '✅ Заявка успешно отправлена!';
+                    status.className = 'text-sm text-center mt-4 text-green-400 block';
+                    document.getElementById('lead-form').reset();
+                    btn.innerText = 'Отправить';
+                    btn.disabled = false;
+                    window.setTimeout(closeModal, 2500);
+                }, 1000);
+            }
+
+            window.submitForm = submitForm;
+
+            // ================================================================
+            //  МОБИЛЬНОЕ МЕНЮ И COOKIE
+            // ================================================================
+
+            function initMobileMenu() {
+                var btn = document.getElementById('mobile-menu-btn');
+                var menu = document.getElementById('mobile-menu');
+                var path = document.getElementById('menu-icon-path');
+                if (!btn || !menu) return;
+
+                btn.addEventListener('click', function () {
+                    menu.classList.toggle('hidden');
+                    if (path) {
+                        path.setAttribute('d', menu.classList.contains('hidden')
+                            ? 'M4 6h16M4 12h16M4 18h16'
+                            : 'M6 18L18 6M6 6l12 12');
+                    }
+                });
+
+                var links = menu.querySelectorAll('a');
+                for (var i = 0; i < links.length; i++) {
+                    links[i].addEventListener('click', function () {
+                        menu.classList.add('hidden');
+                        if (path) path.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                    });
+                }
+            }
+
+            function initCookies() {
+                if (!localStorage.getItem('cookiesAccepted')) {
+                    window.setTimeout(function () {
+                        var banner = document.getElementById('cookie-banner');
+                        if (banner) banner.classList.remove('translate-y-full');
+                    }, 1500);
+                }
+            }
+
+            window.acceptCookies = function () {
+                localStorage.setItem('cookiesAccepted', 'true');
+                var banner = document.getElementById('cookie-banner');
+                if (banner) banner.classList.add('translate-y-full');
+            };
+
+            // ================================================================
+            //  СТАРТ
+            // ================================================================
+
+            function init() {
+                renderFilters();
+                setActiveCat('all');
+                render();
+                bindEvents();
+                initMobileMenu();
+                initCookies();
+
+                // Счётчик в шапке — по текущему состоянию корзины.
+                CART.updateBadge();
+
+                // Подпись кнопок запоминаем сразу: по ней возвращаем
+                // «В корзину» после показа «Добавлено ✓».
+                var addBtns = gridEl.querySelectorAll('.add-to-cart');
+                for (var i = 0; i < addBtns.length; i++) {
+                    addBtns[i].setAttribute('data-label', addBtns[i].textContent);
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+</html>
