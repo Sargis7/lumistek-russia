@@ -641,7 +641,8 @@
         L.push('            image: ' + q(p.image) + ',');
         L.push('            badge: ' + q(p.badge || 'brand-cyan') + ',');
         L.push('            popular: ' + (p.popular ? 'true' : 'false') + ',');
-        L.push('            hidden: ' + (p.hidden ? 'true' : 'false') + ',');        L.push('            description: ' + q(p.description) + ',');
+        L.push('            hidden: ' + (p.hidden ? 'true' : 'false') + ',');
+        L.push('            description: ' + q(p.description) + ',');
         L.push('            units: [');
 
         units.forEach(function (u, i) {

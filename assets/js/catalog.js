@@ -67,6 +67,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/clear-ppf.jpg',
             badge: 'brand-cyan',
             popular: true,
+            hidden: false,
             description: 'Классическая прозрачная полиуретановая пленка толщиной 190 микрон. Обеспечивает максимальный блеск, мощный гидрофоб и невидимую защиту кузова.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 0, note: 'Цена по запросу' },
@@ -83,6 +84,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/clear-pro.jpg',
             badge: 'brand-cyan',
             popular: true,
+            hidden: false,
             description: 'CLEAR PRO относится к числу премиальных материалов, отличается наличием керамического слоя Top Coat, который делает её устойчивой в отношении самых агрессивных внешних факторов. Идеально подойдёт для белых и светлых цветов и для стран с жарким и агрессивным климатом.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 63990, note: '4 266 ₽ за метр' },
@@ -99,6 +101,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/mate-protection.jpg',
             badge: 'brand-pink',
             popular: true,
+            hidden: false,
             description: 'Есть и матовые антигравийные плёнки. Они предназначены как для авто, окрашенных матовой краской, так и автомобилей любого цвета кузова, чтобы сохранить родной цвет, но сделать его матовым. Одной из таких плёнок является премиальная антигравийная матовая плёнка LUMISTEK MATTE PROTECTION.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 74990, note: '4 999 ₽ за метр' },
@@ -115,6 +118,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/clear-ultra-pro.jpg',
             badge: 'brand-cyan',
             popular: false,
+            hidden: false,
             description: 'Идеальный продукт, когда 190 мкм недостаточно для обеспечения высокого уровня защиты. Именно поэтому специалисты компании Lumistek взялись за разработку усиленной «брони» для автомобилей. Результатом долгой и кропотливой работы стало появление уникального материала, получившего название Lumistek Clear Ultra Pro. Отличительная черта этой антигравийной плёнки заключается в повышенной толщине — 215 мкм, без лайнера.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 78990, note: '5 266 ₽ за метр' },
@@ -131,6 +135,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/ultra-pro-one.jpg',
             badge: 'brand-cyan',
             popular: false,
+            hidden: false,
             description: 'Отличительная черта LUMISTEK ULTRA PRO ONE — твёрдый TOP COAT и толщина 215 мкм. Защита от химического воздействия реагентов, поэтому плёнка не пожелтеет со временем. Идеально подходит для стран с агрессивно жарким климатом.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 88990, note: '5 933 ₽ за метр' },
@@ -148,6 +153,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/mhp-plus.jpg',
             badge: 'brand-blue',
             popular: true,
+            hidden: false,
             description: '',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 16490, note: '1 099 ₽ за метр' },
@@ -167,6 +173,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/windshield-protection.jpg',
             badge: 'brand-cyan',
             popular: true,
+            hidden: false,
             description: 'Прозрачная полиуретановая плёнка для стёкол LUMISTEK WINDSHIELD PROTECTION — одно из новейших инновационных решений в области защитных материалов для защиты лобовых стёкол транспортного средства. Это один из лучших способов защитить лобовое стекло от сколов, царапин, трещин и прочих дефектов.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 104990, note: '6 999 ₽ за метр' },
@@ -184,6 +191,7 @@ window.LUMISTEK_CATALOG = {
             image: 'img/products/headlight-protect.jpg',
             badge: 'brand-pink',
             popular: false,
+            hidden: false,
             description: 'Светло-коричневая полиуретановая плёнка для оптики. Придаёт фарам глубокий затемнённый оттенок и одновременно защищает их от мелких сколов и пескоструя.',
             units: [
                 { key: 'roll', label: 'Рулон 1,52 × 15 м', price: 0, note: 'Цена по запросу' },
