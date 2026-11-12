@@ -11,15 +11,14 @@
  *
  *  КАК ЭТО РАБОТАЕТ:
  *  Главная страница берет отсюда список фотографий и рисует карусель сама.
- *  Пока этот файл не подключен на главной, там показываются старые
- *  картинки gallery-1.jpg ... gallery-5.jpg, и ничего не ломается.
+ *  Если этот файл не подключен на главной, там показываются первые
+ *  картинки из img/gallery/, и ничего не ломается.
  *
  *  ПРАВИЛА:
  *   1. Не удаляйте скобки { } [ ] , :  — сайт сломается.
  *   2. Текст — в кавычках: 'вот так'.
  *   3. После каждого значения запятая, КРОМЕ последнего в списке.
- *   4. file   — путь к фото от корня сайта. Например 'img/gallery/work-1.jpg'
- *               или 'gallery-1.jpg' (старые фото лежат в корне).
+ *   4. file   — путь к фото от корня сайта, например 'img/gallery/gallery-1.jpg'.
  *      caption — подпись мелким шрифтом. Можно оставить пустой: ''.
  *
  * ============================================================================
@@ -28,13 +27,14 @@
 window.LUMISTEK_GALLERY = {
 
     /* Дата последнего изменения — обновляется админкой автоматически. */
-    updated: '2026-11-11',
+    updated: '2026-11-12',
 
     photos: [
-        { file: 'gallery-1.jpg', caption: '' },
-        { file: 'gallery-2.jpg', caption: '' },
-        { file: 'gallery-3.jpg', caption: '' },
-        { file: 'gallery-4.jpg', caption: '' },
-        { file: 'gallery-5.jpg', caption: '' }
+        { file: 'img/gallery/gallery-1.jpg', caption: 'Оклейка кузова защитной пленкой' },
+        { file: 'img/gallery/gallery-2.jpg', caption: 'Работа партнера Lumistek' },
+        { file: 'img/gallery/gallery-3.jpg', caption: 'Полиуретановая пленка Lumistek' },
+        { file: 'img/gallery/gallery-4.jpg', caption: 'Оклейка кузова защитной пленкой' },
+        { file: 'img/gallery/gallery-5.jpg', caption: 'Работа партнера Lumistek' },
+        { file: 'img/gallery/gallery-6.jpg', caption: 'Полиуретановая пленка Lumistek' }
     ]
 };
