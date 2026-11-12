@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <title>Lumistek — Панель управления</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            cyan: '#1cb0c6',
+                            blue: '#1b75bc',
+                            pink: '#f2668b',
+                            dark: '#111111',
+                            darker: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background: #0a0a0a; }
+
+        .fld {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #fff;
+            outline: none;
+            transition: border-color .15s ease;
+        }
+        .fld:focus { border-color: #1cb0c6; }
+        .fld::placeholder { color: #6b7280; }
+        select.fld { appearance: none; }
+        select.fld option { background: #111; color: #fff; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all .15s ease;
+            white-space: nowrap;
+        }
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-primary { background: #1cb0c6; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: rgba(28, 176, 198, .82); }
+        .btn-ghost { border-color: rgba(255,255,255,.15); color: #d1d5db; background: transparent; }
+        .btn-ghost:hover:not(:disabled) { border-color: #1cb0c6; color: #fff; }
+        .btn-danger { border-color: rgba(239,68,68,.35); color: #fca5a5; background: transparent; }
+        .btn-danger:hover:not(:disabled) { background: rgba(239,68,68,.12); }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #9ca3af;
+            border-bottom: 2px solid transparent;
+            transition: all .15s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: #e5e7eb; }
+        .tab-btn.border-brand-cyan { color: #fff; }
+
+        .spin {
+            width: 1rem; height: 1rem;
+            border: 2px solid rgba(255,255,255,.25);
+            border-top-color: #fff;
+            border-radius: 9999px;
+            animation: sp .7s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .toast-in { animation: toastIn .18s ease-out; }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen">
+
+<!-- ===================== ЭКРАН 1: ПАРОЛЬ ===================== -->
+<div id="screen-gate" class="hidden min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-brand-cyan/10 border border-brand-cyan/25 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Lumistek</h1>
+            <p class="text-sm text-gray-500 mt-1">Панель управления сайтом</p>
+        </div>
+
+        <form id="gate-form" class="card p-6">
+            <label for="gate-pass" class="block text-sm text-gray-400 mb-2">Пароль администратора</label>
+            <input id="gate-pass" type="password" class="fld" autocomplete="current-password"
+                   placeholder="Введите пароль" required>
+
+            <p id="gate-error" class="hidden mt-3 text-sm text-red-300"></p>
+
+            <button id="gate-btn" type="submit" class="btn btn-primary w-full mt-5">Войти</button>
+        </form>
+
+        <p class="text-center text-xs text-gray-600 mt-6">Страница закрыта от поисковых систем.</p>
+    </div>
+</div>
+
+<!-- ===================== ЭКРАН 2: ПОДКЛЮЧЕНИЕ ===================== -->
+<div id="screen-setup" class="hidden min-h-screen py-10 px-4">
+    <div class="max-w-2xl mx-auto">
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-white">Подключение к GitHub</h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Панель сохраняет изменения прямо в репозиторий сайта. После этого
+                Railway сам пересобирает сайт — обычно за 1–2 минуты.
+            </p>
+        </div>
+
+        <div class="card p-5 mb-5">
+            <h2 class="text-sm font-semibold text-white mb-3">Как получить токен</h2>
+            <ol class="text-sm text-gray-400 space-y-2 list-decimal list-inside">
+                <li>Откройте <a href="https://github.com/settings/personal-access-tokens/new"
+                                target="_blank" rel="noopener"
+                                class="text-brand-cyan hover:underline">github.com/settings/personal-access-tokens/new</a></li>
+                <li><b class="text-gray-300">Token name</b> — например <code class="text-brand-cyan">lumistek-admin</code></li>
+                <li><b class="text-gray-300">Expiration</b> — поставьте «No expiration», иначе панель перестанет работать</li>
+                <li><b class="text-gray-300">Repository access</b> — «Only select repositories» → выберите репозиторий сайта</li>
+                <li><b class="text-gray-300">Permissions</b> → «Repository permissions» →
+                    <code class="text-brand-cyan">Contents</code> → <b class="text-gray-300">Read and write</b></li>
+                <li>Нажмите <b class="text-gray-300">Generate token</b> и скопируйте строку, начинающуюся с
+                    <code class="text-brand-cyan">github_pat_…</code></li>
+            </ol>
+            <p class="text-xs text-gray-500 mt-4 leading-relaxed">
+                Токен хранится только в этом браузере (localStorage) и отправляется напрямую в GitHub.
+                Никуда больше он не уходит. Если сядете за другой компьютер — впишите токен там заново.
+            </p>
+        </div>
+
+        <div class="card p-5">
+            <h2 class="text-sm font-semibold text-white mb-4">Данные репозитория</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="set-owner" class="block text-xs text-gray-400 mb-1.5">Владелец (логин на GitHub)</label>
+                    <input id="set-owner" class="fld" placeholder="например: lumistek" autocomplete="off">
+                </div>
+                <div>
+                    <label for="set-repo" class="block text-xs text-gray-400 mb-1.5">Название репозитория</label>
+                    <input id="set-repo" class="fld" placeholder="например: lumistek-russia" autocomplete="off">
+                </div>
+                <div>
+                    <label for="set-branch" class="block text-xs text-gray-400 mb-1.5">Ветка</label>
+                    <input id="set-branch" class="fld" placeholder="main" autocomplete="off">
+                </div>
+                <div>
+                    <label for="set-token" class="block text-xs text-gray-400 mb-1.5">Токен доступа</label>
+                    <input id="set-token" type="password" class="fld" placeholder="github_pat_…" autocomplete="off">
+                </div>
+            </div>
+
+            <div id="setup-status" class="hidden mt-4 text-sm rounded-xl px-4 py-3 border"></div>
+
+            <div class="flex flex-wrap gap-3 mt-5">
+                <button id="setup-test" type="button" class="btn btn-ghost">Проверить подключение</button>
+                <button id="setup-save" type="button" class="btn btn-primary">Сохранить и открыть панель</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===================== ЭКРАН 3: ПАНЕЛЬ ===================== -->
+<div id="screen-panel" class="hidden min-h-screen">
+
+    <header class="border-b border-white/10 bg-black/40 backdrop-blur sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-lg bg-brand-cyan/10 border border-brand-cyan/25 flex items-center justify-center shrink-0">
+                    <span class="text-brand-cyan font-bold text-sm">L</span>
+                </div>
+                <div class="min-w-0">
+                    <div class="text-sm font-semibold text-white leading-tight">Панель Lumistek</div>
+                    <div id="repo-label" class="text-[11px] text-gray-500 font-mono truncate"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="../index.html" target="_blank" rel="noopener" class="btn btn-ghost hidden sm:inline-flex">Открыть сайт</a>
+                <button id="open-settings" type="button" class="btn btn-ghost" title="Данные подключения к GitHub">Подключение</button>
+                <button id="logout-btn" type="button" class="btn btn-ghost">Выйти</button>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto">
+            <button id="tab-products" type="button" class="tab-btn">Товары</button>
+            <button id="tab-gallery"  type="button" class="tab-btn">Примеры работ</button>
+            <button id="tab-videos"   type="button" class="tab-btn">Видео</button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+
+        <!-- ============ ВКЛАДКА: ТОВАРЫ ============ -->
+        <section id="view-products" class="hidden">
+            <div class="flex items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Товары каталога</h2>
+                    <p class="text-sm text-gray-500 mt-0.5">Меняйте цену и описание. Изменения появятся на сайте после пересборки.</p>
+                </div>
+                <button id="product-add" type="button" class="btn btn-primary shrink-0">+ Добавить товар</button>
+            </div>
+
+            <form id="product-form" class="card p-5 mb-6 hidden">
+                <h3 id="product-form-title" class="text-base font-semibold text-white mb-2">Новый товар</h3>
+                <p id="prod-id-note" class="text-[11px] text-gray-500 font-mono mb-5"></p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="prod-name" class="block text-xs text-gray-400 mb-1.5">Название</label>
+                            <input id="prod-name" class="fld" placeholder="Например: Clear Pro">
+                        </div>
+                        <div>
+                            <label for="prod-category" class="block text-xs text-gray-400 mb-1.5">Категория</label>
+                            <select id="prod-category" class="fld"></select>
+                        </div>
+                        <div>
+                            <label for="prod-badge" class="block text-xs text-gray-400 mb-1.5">Плашка на карточке <span class="text-gray-600">(необязательно)</span></label>
+                            <input id="prod-badge" class="fld" placeholder="например: Глянцевая">
+                        </div>
+                        <div>
+                            <label for="prod-subtitle" class="block text-xs text-gray-400 mb-1.5">Описание</label>
+                            <textarea id="prod-subtitle" class="fld" rows="4" placeholder="Коротко о товаре — этот текст виден на карточке"></textarea>
+                        </div>
+                        <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                            <input id="prod-popular" type="checkbox" class="w-4 h-4 accent-brand-cyan">
+                            <span class="text-sm text-gray-300">Показывать как «Хит»</span>
+                        </label>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="prod-image" class="block text-xs text-gray-400 mb-1.5">Фотография товара</label>
+                            <input id="prod-image" type="file" accept="image/*"
+                                   class="fld file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-brand-cyan/20 file:text-brand-cyan">
+                            <p class="text-[11px] text-gray-500 mt-2">
+                                Файл сжимается до 1600 px и кладётся в <code class="text-brand-cyan">img/products/</code>.
+                                Оставьте пустым — фото не изменится.
+                            </p>
+                            <p id="prod-image-path" class="text-[11px] text-gray-500 font-mono mt-1 truncate"></p>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs text-gray-400">Варианты покупки и цены</label>
+                                <button id="unit-add" type="button" class="text-xs text-brand-cyan hover:underline">+ вариант</button>
+                            </div>
+                            <div id="unit-rows" class="space-y-2"></div>
+                            <p class="text-[11px] text-gray-500 mt-2">
+                                «Варианты» — это рулон, метр или оттенок. Цена <b class="text-gray-400">0</b>
+                                показывается покупателю как «Цена по запросу». Порядок строк — порядок на карточке.
+                            </p>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs text-gray-400">Характеристики</label>
+                                <button id="spec-add" type="button" class="text-xs text-brand-cyan hover:underline">+ строка</button>
+                            </div>
+                            <div id="spec-rows" class="space-y-2"></div>
+                            <p class="text-[11px] text-gray-500 mt-2">
+                                Короткие факты о товаре: толщина, гарантия, тип покрытия.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3 mt-6 pt-5 border-t border-white/10">
+                    <button id="product-save" type="button" class="btn btn-primary">Сохранить в репозиторий</button>
+                    <button id="product-cancel" type="button" class="btn btn-ghost">Отмена</button>
+                    <button id="product-delete" type="button" class="btn btn-danger ml-auto hidden">Удалить товар</button>
+                </div>
+            </form>
+
+            <div class="card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-white/5">
+                            <tr class="text-[11px] uppercase tracking-wider text-gray-500">
+                                <th class="py-3 px-4 font-medium">Фото</th>
+                                <th class="py-3 px-3 font-medium">Товар</th>
+                                <th class="py-3 px-3 font-medium">Категория</th>
+                                <th class="py-3 px-3 font-medium">Цены</th>
+                                <th class="py-3 px-4 font-medium text-right">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-body"></tbody>
+                    </table>
+                </div>
+                <div id="products-empty" class="hidden px-4 py-12 text-center">
+                    <p class="text-sm text-gray-500">Товаров пока нет. Нажмите «+ Добавить товар», чтобы создать первый.</p>
+                </div>
+                <div id="products-loading" class="px-4 py-12 text-center">
+                    <p class="text-sm text-gray-500">Загружаем товары из репозитория…</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ ВКЛАДКА: ПРИМЕРЫ РАБОТ ============ -->
+        <section id="view-gallery" class="hidden">
+            <div class="flex items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-lg font-semibold text-white">
+                        Примеры работ
+                        <span id="gallery-count" class="ml-2 text-sm font-normal text-gray-500"></span>
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        Эти фото показываются в блоке «Наши работы» на главной странице.
+                    </p>
+                </div>
+                <button id="gallery-reload" type="button" class="btn btn-ghost shrink-0">Обновить</button>
+            </div>
+
+            <div class="card p-5 mb-6">
+                <label for="gallery-files" class="block text-sm font-medium text-white mb-2">Добавить фотографии</label>
+                <input id="gallery-files" type="file" accept="image/*" multiple
+                       class="fld file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-brand-cyan/20 file:text-brand-cyan">
+                <p class="text-[11px] text-gray-500 mt-2">
+                    Можно выбрать сразу несколько файлов. Каждый сжимается до 1600 px
+                    и сохраняется в <code class="text-brand-cyan">img/gallery/</code>.
+                </p>
+            </div>
+
+            <div id="gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+
+            <div id="gallery-empty" class="hidden card px-4 py-12 text-center">
+                <p class="text-sm text-gray-500">Фотографий пока нет. Добавьте первые через поле выше.</p>
+            </div>
+        </section>
+
+        <!-- ============ ВКЛАДКА: ВИДЕО ============ -->
+        <section id="view-videos" class="hidden">
+
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-white">Видео на главной</h2>
+                <p class="text-sm text-gray-500 mt-0.5">
+                    Блок новостей на сайте. Ниже — запасной список: он показывается,
+                    если YouTube недоступен, и его можно править здесь.
+                </p>
+            </div>
+
+            <div class="card p-5 mb-6">
+                <h3 class="text-sm font-semibold text-white mb-3">Добавить видео</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <input id="short-url" class="fld sm:col-span-6" placeholder="https://www.youtube.com/shorts/XXXXXXXXXXX">
+                    <input id="short-title" class="fld sm:col-span-4" placeholder="Подпись на карточке (необязательно)">
+                    <button id="short-add" type="button" class="btn btn-ghost sm:col-span-2">Добавить</button>
+                </div>
+                <p class="text-[11px] text-gray-500 mt-2">
+                    Новое видео встаёт в начало списка. Подпись можно оставить пустой —
+                    тогда на сайте покажется название с YouTube.
+                </p>
+            </div>
+
+            <div class="card p-5 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-white">
+                        Запасной список
+                        <span id="shorts-count" class="ml-2 font-normal text-gray-500"></span>
+                    </h3>
+                    <button id="shorts-save" type="button" class="btn btn-primary">Сохранить видео</button>
+                </div>
+
+                <div id="shorts-list" class="space-y-2"></div>
+
+                <div id="shorts-empty" class="hidden py-8 text-center">
+                    <p class="text-sm text-gray-500">Список пуст. Добавьте видео через поле выше.</p>
+                </div>
+            </div>
+
+            <div class="card p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white">
+                            Автоматический список с YouTube
+                            <span id="videos-live-count" class="ml-2 font-normal text-gray-500"></span>
+                        </h3>
+                        <p class="text-[11px] text-gray-500 mt-1">
+                            Только для справки. Обновляется роботом раз в сутки, отсюда не меняется.
+                        </p>
+                    </div>
+                    <button id="videos-reload" type="button" class="btn btn-ghost">Обновить</button>
+                </div>
+                <ul id="videos-live"></ul>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ===================== ТОСТЫ И ЗАГРУЗКА ===================== -->
+<div id="toasts" class="fixed top-4 right-4 z-50 flex flex-col gap-2 w-[min(22rem,calc(100vw-2rem))] pointer-events-none"></div>
+
+<div id="busy" class="hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+    <div class="card px-6 py-5 flex items-center gap-3">
+        <span class="spin"></span>
+        <span id="busy-text" class="text-sm text-gray-200">Сохраняем…</span>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

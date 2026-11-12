@@ -224,9 +224,51 @@
         headlight: 'ОПТИКА'
     };
 
+    /*
+     * Строка-разделитель внутри products[]:
+     *      /* ============================ PPF ============================ *\/
+     * Длина полосы считается от длины названия: pad = 30 - ceil(len/2).
+     * Так строка остается примерно одной ширины и совпадает с исходным
+     * catalog.js. Полосы слева и справа всегда одинаковые.
+     */
+    function separatorLine(title) {
+        var t = String(title || '');
+        var pad = 30 - Math.ceil(t.length / 2);
+        if (pad < 4) pad = 4;
+
+        var bar = new Array(pad + 1).join('=');
+        return '/* ' + bar + ' ' + t + ' ' + bar + ' */';
+    }
+
+    /*
+     * Достает из исходного catalog.js уже написанные строки-разделители.
+     * Возвращает объект { 'PPF': '/* ==== PPF ==== *\/', ... }.
+     *
+     * Зачем: полосы в исходном файле рисовал человек, и они не ложатся
+     * ни в одну формулу (у «PPF» полоса 28, у «ОПТИКА» — 27 при близкой
+     * длине). Поэтому при сохранении мы НЕ пересчитываем их, а переносим
+     * дословно. Формула separatorLine остается только для новых разделов,
+     * которых в исходнике не было.
+     */
+    function collectSeparators(originalText) {
+        var out = {};
+        if (!originalText) return out;
+
+        /* Ищем только внутри products[] — в других местах таких строк нет. */
+        var re = /\/\*[ \t]*(=+)[ \t]+([^*\n]+?)[ \t]+\1[ \t]*\*\//g;
+        var m;
+        while ((m = re.exec(originalText)) !== null) {
+            var title = m[2].trim();
+            if (!title) continue;
+            if (!Object.prototype.hasOwnProperty.call(out, title)) {
+                out[title] = m[0];
+            }
+        }
+        return out;
+    }
+
     /* Один товар. last = это последний товар в общем списке (тогда без запятой). */
-    function productBlock(p, last) {
-        var L = [];
+    function productBlock(p, last) {        var L = [];
         var units = Array.isArray(p.units) ? p.units : [];
         var spec = Array.isArray(p.spec) ? p.spec : [];
 
@@ -259,11 +301,16 @@
     /*
      * Собирает полный текст assets/js/catalog.js из модели:
      *   { updated: '2026-11-11', categories: [{key,title}], products: [...] }
+     *
+     * Второй аргумент (необязательный) — исходный текст файла. Он нужен,
+     * чтобы сохранить уже написанные заголовки-разделители дословно:
+     * их рисовал человек, и пересчитывать их ширину нельзя.
      */
-    function buildCatalogText(model) {
+    function buildCatalogText(model, originalText) {
         var data = model || {};
         var categories = Array.isArray(data.categories) ? data.categories : [];
         var products = Array.isArray(data.products) ? data.products : [];
+        var keptSeparators = collectSeparators(originalText);
         var L = [];
 
         L.push(CATALOG_HEADER);
@@ -277,8 +324,19 @@
         L.push('     *  Порядок здесь = порядок кнопок-фильтров в каталоге.');
         L.push('     * ------------------------------------------------------------------ */');
         L.push('    categories: [');
+        /*
+         * Ключи выравниваем по самому длинному, чтобы блок читался
+         * ровным столбиком — как в исходном catalog.js.
+         */
+        var keyWidth = 0;
+        categories.forEach(function (c) {
+            var len = q(c.key).length;
+            if (len > keyWidth) keyWidth = len;
+        });
         categories.forEach(function (c, i) {
-            var line = '        { key: ' + q(c.key) + ', title: ' + q(c.title) + ' }';
+            var key = q(c.key);
+            var gap = new Array(keyWidth - key.length + 2).join(' ');
+            var line = '        { key: ' + key + ',' + gap + 'title: ' + q(c.title) + ' }';
             if (i < categories.length - 1) line += ',';
             L.push(line);
         });
@@ -313,9 +371,13 @@
                 var match = categories.filter(function (c) { return c.key === g.key; })[0];
                 title = match ? String(match.title).toUpperCase() : String(g.key).toUpperCase();
             }
-            var pad = Math.max(4, Math.floor((56 - title.length) / 2));
-            var bar = new Array(pad + 1).join('=');
-            L.push('        /* ' + bar + ' ' + title + ' ' + bar + ' */');
+
+            /*
+             * Разделитель берем из исходного файла дословно, если он там был.
+             * Иначе рисуем по формуле — но только для новых разделов.
+             */
+            var existing = keptSeparators[title];
+            L.push('        ' + (existing || separatorLine(title)));
 
             g.items.forEach(function (p, idx) {
                 written++;
@@ -521,8 +583,16 @@
             lines.push('        }' + (i < list.length - 1 ? ',' : ''));
         });
 
+        /*
+         * Файл может быть с Windows-переводами строк (\r\n). Если вставить
+         * блок с \n, получится смесь, и git покажет лишний шум в диффе.
+         * Поэтому подстраиваемся под стиль самого файла.
+         */
+        var eol = src.indexOf('\r\n') !== -1 ? '\r\n' : '\n';
+        var body = lines.join(eol);
+
         /* Тело блока начинается с перевода строки после '['. */
-        var newBody = list.length ? '\n' + lines.join('\n') + '\n    ' : '';
+        var newBody = list.length ? eol + body + eol + '    ' : '';
         var out = src.slice(0, range.open + 1) + newBody + src.slice(range.close);
 
         var check = isJsSafe(out);
@@ -565,9 +635,34 @@
     /* Дополняет дату до вида '2026-11-11' и проверяет её. */
     function normalizeDate(value) {
         var s = String(value || '').trim();
+        if (!s) return today();
+
+        /* Уже готовый вид. */
         if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-        var m = s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-        if (m) return m[3] + '-' + m[2] + '-' + m[1];
+
+        /* 2026-1-5 -> 2026-01-05 (человек мог не добить нули). */
+        var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (iso) {
+            var mm = ('0' + iso[2]).slice(-2);
+            var dd = ('0' + iso[3]).slice(-2);
+            if (Number(iso[2]) >= 1 && Number(iso[2]) <= 12 &&
+                Number(iso[3]) >= 1 && Number(iso[3]) <= 31) {
+                return iso[1] + '-' + mm + '-' + dd;
+            }
+        }
+
+        /* 5.1.2026 -> 2026-01-05 (русский формат). */
+        var ru = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+        if (ru) {
+            var m2 = ('0' + ru[2]).slice(-2);
+            var d2 = ('0' + ru[1]).slice(-2);
+            if (Number(ru[2]) >= 1 && Number(ru[2]) <= 12 &&
+                Number(ru[1]) >= 1 && Number(ru[1]) <= 31) {
+                return ru[3] + '-' + m2 + '-' + d2;
+            }
+        }
+
+        /* Не разобрали — лучше сегодняшняя дата, чем мусор на сайте. */
         return today();
     }
 
@@ -876,6 +971,9 @@
         var err = $('#gate-error');
         var btn = $('#gate-btn');
 
+        /* Разметки нет — работаем без заслонки, чтобы панель не встала. */
+        if (!form || !input || !err || !btn) return false;
+
         if (sessionStorage.getItem(SS_AUTH) === '1') return false;
 
         form.addEventListener('submit', function (e) {
@@ -913,21 +1011,27 @@
 
     /* Настройки подключения — заполняем поля текущими значениями. */
     function fillSettingsForm() {
-        $('#set-owner').value = state.settings.owner;
-        $('#set-repo').value = state.settings.repo;
-        $('#set-branch').value = state.settings.branch;
-        $('#set-token').value = state.settings.token;
+        var owner = $('#set-owner');
+        var repo = $('#set-repo');
+        var branch = $('#set-branch');
+        var token = $('#set-token');
+
+        if (owner) owner.value = state.settings.owner;
+        if (repo) repo.value = state.settings.repo;
+        if (branch) branch.value = state.settings.branch;
+        if (token) token.value = state.settings.token;
     }
 
     function readSettingsForm() {
-        state.settings.owner = $('#set-owner').value.trim() || DEFAULT_SETTINGS.owner;
-        state.settings.repo = $('#set-repo').value.trim() || DEFAULT_SETTINGS.repo;
-        state.settings.branch = $('#set-branch').value.trim() || DEFAULT_SETTINGS.branch;
-        state.settings.token = $('#set-token').value.trim();
+        state.settings.owner = ($('#set-owner') ? $('#set-owner').value.trim() : '') || DEFAULT_SETTINGS.owner;
+        state.settings.repo = ($('#set-repo') ? $('#set-repo').value.trim() : '') || DEFAULT_SETTINGS.repo;
+        state.settings.branch = ($('#set-branch') ? $('#set-branch').value.trim() : '') || DEFAULT_SETTINGS.branch;
+        state.settings.token = $('#set-token') ? $('#set-token').value.trim() : state.settings.token;
     }
 
     function setSetupStatus(kind, text) {
         var el = $('#setup-status');
+        if (!el) return;
         el.classList.remove('hidden');
         el.className = 'mt-4 text-sm rounded-xl px-4 py-3 border ' + (
             kind === 'ok' ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200' :
@@ -940,7 +1044,10 @@
     function initSetup() {
         fillSettingsForm();
 
-        $('#setup-test').addEventListener('click', function () {
+        var testBtn = $('#setup-test');
+        var saveBtn = $('#setup-save');
+
+        if (testBtn) testBtn.addEventListener('click', function () {
             readSettingsForm();
             if (!state.settings.owner || !state.settings.repo) {
                 setSetupStatus('err', 'Заполните владельца и название репозитория.');
@@ -962,7 +1069,7 @@
             }).finally(function () { btn.disabled = false; });
         });
 
-        $('#setup-save').addEventListener('click', function () {
+        if (saveBtn) saveBtn.addEventListener('click', function () {
             readSettingsForm();
             if (!state.settings.owner || !state.settings.repo) {
                 setSetupStatus('err', 'Заполните владельца и название репозитория.');
@@ -980,8 +1087,11 @@
 
     function openPanel() {
         showScreen('panel');
-        $('#repo-label').textContent = state.settings.owner + '/' + state.settings.repo +
-            ' (' + state.settings.branch + ')';
+        var label = $('#repo-label');
+        if (label) {
+            label.textContent = state.settings.owner + '/' + state.settings.repo +
+                ' (' + state.settings.branch + ')';
+        }
         switchTab(state.tab);
     }
 
@@ -1137,6 +1247,15 @@
                 renderProducts();
             });
         }).catch(function (e) {
+            /*
+             * Загрузка не удалась (нет сети, плохой токен, нет прав).
+             * Заглушку «Загружаем…» обязательно убираем, иначе она
+             * останется висеть над пустой таблицей навсегда.
+             */
+            var loading = $('#products-loading');
+            if (loading) loading.classList.add('hidden');
+            var empty = $('#products-empty');
+            if (empty) empty.classList.remove('hidden');
             toast(e.message || 'Не удалось загрузить товары.', 'err');
         });
     }
@@ -1196,7 +1315,11 @@
     function renderProducts() {
         var body = $('#products-body');
         var empty = $('#products-empty');
+        var loading = $('#products-loading');
         if (!body) return;
+
+        /* Данные пришли (или попытка закончилась) — убираем заглушку. */
+        if (loading) loading.classList.add('hidden');
 
         var products = (state.catalog && state.catalog.products) || [];
 
@@ -1268,28 +1391,38 @@
 
         if (title) title.textContent = isNew ? 'Новый товар' : 'Товар: ' + p.name;
 
-        $('#prod-name').value = p.name || '';
-        $('#prod-subtitle').value = p.subtitle || '';
-        $('#prod-description').value = p.description || '';
-        $('#prod-popular').checked = !!p.popular;
-        $('#prod-image-path').textContent = p.image || 'файл не выбран';
-        $('#prod-id-note').textContent = p.id
-            ? 'Код товара: ' + p.id + ' (не меняется)'
-            : 'Код товара будет создан автоматически из названия.';
+        setValue('#prod-name', p.name || '');
+        setValue('#prod-subtitle', p.subtitle || '');
+        setValue('#prod-description', p.description || '');
+        setChecked('#prod-popular', !!p.popular);
+
+        var pathLabel = $('#prod-image-path');
+        if (pathLabel) pathLabel.textContent = p.image || 'файл не выбран';
+
+        var idNote = $('#prod-id-note');
+        if (idNote) {
+            idNote.textContent = p.id
+                ? 'Код товара: ' + p.id + ' (не меняется)'
+                : 'Код товара будет создан автоматически из названия.';
+        }
 
         /* Раздел. */
         var select = $('#prod-category');
-        select.innerHTML = cats.map(function (c) {
-            return '<option value="' + esc(c.key) + '">' + esc(c.title) + '</option>';
-        }).join('');
-        if (p.category) select.value = p.category;
+        if (select) {
+            select.innerHTML = cats.map(function (c) {
+                return '<option value="' + esc(c.key) + '">' + esc(c.title) + '</option>';
+            }).join('');
+            if (p.category) select.value = p.category;
+        }
 
         /* Плашка. */
         var badgeSel = $('#prod-badge');
-        badgeSel.innerHTML = BADGES.map(function (b) {
-            return '<option value="' + esc(b.key) + '">' + esc(b.title) + '</option>';
-        }).join('');
-        badgeSel.value = p.badge || 'brand-cyan';
+        if (badgeSel) {
+            badgeSel.innerHTML = BADGES.map(function (b) {
+                return '<option value="' + esc(b.key) + '">' + esc(b.title) + '</option>';
+            }).join('');
+            badgeSel.value = p.badge || 'brand-cyan';
+        }
 
         renderUnitRows();
         renderSpecRows();
@@ -1299,7 +1432,25 @@
 
         form.classList.remove('hidden');
         form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        $('#prod-name').focus();
+
+        var nameField = $('#prod-name');
+        if (nameField) nameField.focus();
+    }
+
+    /* Мелкие помощники: не падают, если поля нет на странице. */
+    function setValue(sel, value) {
+        var el = $(sel);
+        if (el) el.value = value;
+    }
+
+    function setChecked(sel, value) {
+        var el = $(sel);
+        if (el) el.checked = value;
+    }
+
+    function fieldValue(sel) {
+        var el = $(sel);
+        return el ? el.value : '';
     }
 
     function closeProductForm() {
@@ -1363,7 +1514,7 @@
      * Ключи вариантов сохраняются, если поле непустое, — иначе генерируются.
      */
     function readProductForm() {
-        var name = $('#prod-name').value.trim();
+        var name = fieldValue('#prod-name').trim();
         if (!name) return { error: 'Введите название товара.' };
 
         var editingId = state.editing && state.editing.id;
@@ -1404,13 +1555,13 @@
         return {
             product: {
                 id: id,
-                category: $('#prod-category').value,
+                category: fieldValue('#prod-category'),
                 name: name,
-                subtitle: $('#prod-subtitle').value.trim(),
+                subtitle: fieldValue('#prod-subtitle').trim(),
                 image: (state.editing && state.editing.image) || '',
-                badge: $('#prod-badge').value || 'brand-cyan',
-                popular: $('#prod-popular').checked,
-                description: $('#prod-description').value,
+                badge: fieldValue('#prod-badge') || 'brand-cyan',
+                popular: !!($('#prod-popular') && $('#prod-popular').checked),
+                description: fieldValue('#prod-description'),
                 units: units,
                 spec: spec
             }
@@ -1694,3 +1845,472 @@
             toast(e.message || 'Не удалось убрать фото.', 'err');
         });
     }
+
+    /* ========================================================================
+     *  10. ВКЛАДКА «ВИДЕО»
+     * ====================================================================== */
+
+    /*
+     * Читает config.js ЦЕЛИКОМ и запоминает sha. Файл не пересобирается:
+     * заменяется ровно блок fallbackShorts, остальные байты (включая
+     * русские комментарии) остаются нетронутыми.
+     */
+    function loadVideos() {
+        return withBusy('Загружаем видео…', function () {
+            var jobs = [
+                readFile(PATHS.config).then(function (r) {
+                    if (!r.exists) throw new Error('В репозитории нет файла assets/js/config.js.');
+                    state.configText = r.text;
+                    state.configSha = r.sha;
+                    state.shorts = parseShortsEntries(r.text);
+                }),
+
+                /* news.json только читаем: он показывает, что уже на сайте. */
+                readFile(PATHS.news).then(function (r) {
+                    if (!r.exists) { state.news = null; return; }
+                    try { state.news = JSON.parse(r.text); }
+                    catch (e) { state.news = null; }
+                }).catch(function () { state.news = null; })
+            ];
+
+            return Promise.all(jobs);
+        }).then(function () {
+            renderVideos();
+        }).catch(function (e) {
+            toast(e.message || 'Не удалось загрузить видео.', 'err');
+        });
+    }
+
+    function renderVideos() {
+        renderLiveVideos();
+        renderShorts();
+    }
+
+    /* Видео из news.json — только для справки, панель их не меняет. */
+    function renderLiveVideos() {
+        var box = $('#videos-live');
+        if (!box) return;
+
+        var videos = (state.news && Array.isArray(state.news.videos)) ? state.news.videos : [];
+        var label = $('#videos-live-count');
+        if (label) label.textContent = String(videos.length);
+
+        if (!videos.length) {
+            box.innerHTML = '<li class="text-sm text-gray-500 py-2">' +
+                'Список пуст или news.json недоступен. Он обновляется роботом раз в сутки.</li>';
+            return;
+        }
+
+        box.innerHTML = videos.map(function (v) {
+            var date = String(v.published || '').slice(0, 10);
+            return '' +
+                '<li class="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">' +
+                    '<span class="text-[11px] text-gray-600 font-mono w-20 shrink-0">' + esc(date) + '</span>' +
+                    '<span class="text-sm text-gray-300 flex-1 truncate" title="' + esc(v.title) + '">' +
+                        esc(v.title) + '</span>' +
+                    '<a href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.id) + '" ' +
+                        'target="_blank" rel="noopener" ' +
+                        'class="text-xs text-brand-cyan hover:underline shrink-0">открыть</a>' +
+                '</li>';
+        }).join('');
+    }
+
+    /* Резервный список fallbackShorts — его панель и правит. */
+    function renderShorts() {
+        var box = $('#shorts-list');
+        var empty = $('#shorts-empty');
+        var count = $('#shorts-count');
+        if (!box) return;
+
+        var list = state.shorts || [];
+        if (count) count.textContent = String(list.length);
+
+        if (!list.length) {
+            box.innerHTML = '';
+            if (empty) empty.classList.remove('hidden');
+            return;
+        }
+        if (empty) empty.classList.add('hidden');
+
+        box.innerHTML = list.map(function (s, i) {
+            return '' +
+                '<div class="shorts-row grid grid-cols-12 gap-2 items-center" data-index="' + i + '">' +
+                    '<span class="col-span-1 text-xs text-gray-600 text-center font-mono">' + (i + 1) + '</span>' +
+                    '<input class="short-title col-span-6 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm" ' +
+                        'placeholder="Подпись на карточке" value="' + esc(s.title) + '">' +
+                    '<input class="short-date col-span-2 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm" ' +
+                        'placeholder="2026-01-01" value="' + esc(s.date) + '">' +
+                    '<span class="col-span-2 text-[11px] text-gray-500 font-mono truncate" title="' + esc(s.id) + '">' +
+                        esc(s.id) + '</span>' +
+                    '<button type="button" class="short-del col-span-1 py-2 rounded-lg border border-red-500/30 ' +
+                        'text-red-300 hover:bg-red-500/10 transition" title="Удалить">&times;</button>' +
+                '</div>';
+        }).join('');
+    }
+
+    /*
+     * Добавляет видео: из ссылки достаем 11-символьный код.
+     * Новое видео встает СВЕРХУ — на сайте порядок сверху вниз,
+     * самые новые первыми.
+     */
+    function addShort(url, title) {
+        var id = parseYouTubeId(url);
+        if (!id) {
+            toast('Не удалось разобрать ссылку. Нужна ссылка вида ' +
+                'https://www.youtube.com/shorts/XXXXXXXXXXX', 'err');
+            return false;
+        }
+
+        var exists = (state.shorts || []).some(function (s) { return s.id === id; });
+        if (exists) {
+            toast('Это видео уже есть в списке.', 'err');
+            return false;
+        }
+
+        state.shorts.unshift({
+            id: id,
+            title: String(title || '').trim() || 'Видео Lumistek',
+            date: today()
+        });
+
+        renderShorts();
+        toast('Видео добавлено в список. Не забудьте нажать «Сохранить».', 'info');
+        return true;
+    }
+
+    function removeShort(index) {
+        if (!state.shorts || !state.shorts[index]) return;
+        state.shorts.splice(index, 1);
+        renderShorts();
+    }
+
+    /* Считывает подписи и даты прямо из полей списка видео. */
+    function collectShortsFromForm() {
+        var rows = $$('.shorts-row', $('#shorts-list'));
+        var list = [];
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var id = (state.shorts[i] && state.shorts[i].id) || '';
+            if (!id) continue;
+
+            var title = $('.short-title', row).value.trim();
+            if (!title) {
+                return { error: 'У видео №' + (i + 1) + ' пустая подпись. Заполните её или удалите видео.' };
+            }
+
+            list.push({
+                id: id,
+                title: title,
+                date: normalizeDate($('.short-date', row).value)
+            });
+        }
+
+        return { list: list };
+    }
+
+    /*
+     * Заменяет блок fallbackShorts в config.js и пишет файл.
+     * Перед записью заново читаем текст и свежий sha — чтобы не потерять
+     * чужие правки и не получить конфликт версий.
+     */
+    function saveShorts() {
+        var fromForm = collectShortsFromForm();
+        if (fromForm.error) { toast(fromForm.error, 'err'); return Promise.resolve(); }
+        state.shorts = fromForm.list;
+
+        return withBusy('Сохраняем видео…', function () {
+            return readFile(PATHS.config).then(function (r) {
+                if (!r.exists) throw new Error('В репозитории нет файла assets/js/config.js.');
+
+                var out = replaceShortsBlock(r.text, state.shorts);
+                if (!out.ok) throw new Error(out.error);
+
+                return writeFile(PATHS.config, out.text, r.sha, 'admin: обновлён список видео');
+            });
+        }).then(function () {
+            return loadVideos();
+        }).then(function () {
+            toast('Список видео сохранён. Сайт обновится через 1-2 минуты.', 'ok');
+        }).catch(function (e) {
+            toast(e.message || 'Не удалось сохранить видео.', 'err');
+        });
+    }
+
+    /* ========================================================================
+     *  11. ЗАПУСК
+     * ====================================================================== */
+
+    function initPanel() {
+        /* Выход: забываем вход в этой вкладке браузера. */
+        var logout = $('#logout-btn');
+        if (logout) {
+            logout.addEventListener('click', function () {
+                sessionStorage.removeItem(SS_AUTH);
+                state.catalog = null;
+                state.gallery = null;
+                state.configText = null;
+                state.shorts = [];
+                state.news = null;
+                location.reload();
+            });
+        }
+
+        /* Возврат к экрану подключения. */
+        var toSetup = $('#open-settings');
+        if (toSetup) toSetup.addEventListener('click', function () { showScreen('setup'); });
+
+        TABS.forEach(function (t) {
+            var btn = $(t.btn);
+            if (btn) btn.addEventListener('click', function () { switchTab(t.key); });
+        });
+
+        initProductsTab();
+        initGalleryTab();
+        initVideosTab();
+    }
+
+    function initProductsTab() {
+        var add = $('#product-add');
+        if (add) add.addEventListener('click', function () { openProductForm(null); });
+
+        var cancel = $('#product-cancel');
+        if (cancel) cancel.addEventListener('click', closeProductForm);
+
+        var save = $('#product-save');
+        if (save) save.addEventListener('click', function () { saveProduct(); });
+
+        /*
+         * Изменить/удалить товар. Вешаем на таблицу через делегирование:
+         * строки перерисовываются, отдельные обработчики бы потерялись.
+         */
+        var body = $('#products-body');
+        if (body) {
+            body.addEventListener('click', function (e) {
+                var editBtn = e.target.closest ? e.target.closest('[data-edit]') : null;
+                if (editBtn) {
+                    var idxEdit = Number(editBtn.getAttribute('data-edit'));
+                    var products = (state.catalog && state.catalog.products) || [];
+                    if (products[idxEdit]) openProductForm(products[idxEdit]);
+                    return;
+                }
+
+                var delBtn = e.target.closest ? e.target.closest('[data-del]') : null;
+                if (delBtn) deleteProduct(Number(delBtn.getAttribute('data-del')));
+            });
+        }
+
+        var del = $('#product-delete');
+        if (del) {
+            del.addEventListener('click', function () {
+                if (!state.editing) return;
+                var products = (state.catalog && state.catalog.products) || [];
+                var idx = products.map(function (p) { return p.id; }).indexOf(state.editing.id);
+                if (idx >= 0) deleteProduct(idx);
+            });
+        }
+
+        /* Новый вариант покупки. */
+        var addUnit = $('#unit-add');
+        if (addUnit) {
+            addUnit.addEventListener('click', function () {
+                var saved = collectUnitRows();
+                saved.push({ key: '', label: '', price: 0, note: '' });
+                if (state.editing) state.editing.units = saved;
+                renderUnitRows();
+            });
+        }
+
+        var unitBox = $('#unit-rows');
+        if (unitBox) {
+            unitBox.addEventListener('click', function (e) {
+                var btn = e.target.closest ? e.target.closest('.unit-del') : null;
+                if (!btn) return;
+
+                var saved = collectUnitRows();
+                saved.splice(Number(btn.parentNode.getAttribute('data-index')), 1);
+                if (state.editing) state.editing.units = saved;
+                renderUnitRows();
+            });
+        }
+
+        /* Новая характеристика. */
+        var addSpec = $('#spec-add');
+        if (addSpec) {
+            addSpec.addEventListener('click', function () {
+                var saved = collectSpecRows();
+                saved.push('');
+                if (state.editing) state.editing.spec = saved;
+                renderSpecRows();
+            });
+        }
+
+        var specBox = $('#spec-rows');
+        if (specBox) {
+            specBox.addEventListener('click', function (e) {
+                var btn = e.target.closest ? e.target.closest('.spec-del') : null;
+                if (!btn) return;
+
+                var saved = collectSpecRows();
+                saved.splice(Number(btn.parentNode.getAttribute('data-index')), 1);
+                if (state.editing) state.editing.spec = saved;
+                renderSpecRows();
+            });
+        }
+
+        /* Подпись выбранного файла. */
+        var file = $('#prod-image');
+        if (file) {
+            file.addEventListener('change', function () {
+                var chosen = this.files && this.files[0];
+                $('#prod-image-path').textContent = chosen
+                    ? chosen.name + ' (' + bytesText(chosen.size) + ')'
+                    : ((state.editing && state.editing.image) || 'файл не выбран');
+            });
+        }
+    }
+
+    /*
+     * Считывает строки вариантов прямо из DOM, включая пустые.
+     * Нужно, чтобы правки не терялись при нажатии «добавить»/«удалить»,
+     * пока пользователь еще не сохранил товар.
+     */
+    function collectUnitRows() {
+        return $$('.unit-row', $('#unit-rows')).map(function (row) {
+            return {
+                key: $('.unit-key', row).value.trim(),
+                label: $('.unit-label', row).value,
+                price: Number($('.unit-price', row).value) || 0,
+                note: $('.unit-note', row).value
+            };
+        });
+    }
+
+    function collectSpecRows() {
+        return $$('.spec-row', $('#spec-rows')).map(function (row) {
+            return $('.spec-value', row).value;
+        });
+    }
+
+    function initGalleryTab() {
+        var picker = $('#gallery-files');
+        if (picker) {
+            picker.addEventListener('change', function () {
+                var files = this.files;
+                this.value = '';
+                handleGalleryFiles(files);
+            });
+        }
+
+        var grid = $('#gallery-grid');
+        if (grid) {
+            grid.addEventListener('click', function (e) {
+                var btn = e.target.closest ? e.target.closest('[data-gdel]') : null;
+                if (btn) deleteGalleryPhoto(Number(btn.getAttribute('data-gdel')));
+            });
+        }
+
+        var reload = $('#gallery-reload');
+        if (reload) reload.addEventListener('click', function () { loadGallery(); });
+    }
+
+    function initVideosTab() {
+        var add = $('#short-add');
+        if (add) {
+            add.addEventListener('click', function () {
+                var url = $('#short-url').value;
+                var title = $('#short-title').value;
+                if (addShort(url, title)) {
+                    $('#short-url').value = '';
+                    $('#short-title').value = '';
+                }
+            });
+        }
+
+        var box = $('#shorts-list');
+        if (box) {
+            box.addEventListener('click', function (e) {
+                var btn = e.target.closest ? e.target.closest('.short-del') : null;
+                if (btn) removeShort(Number(btn.parentNode.getAttribute('data-index')));
+            });
+        }
+
+        var save = $('#shorts-save');
+        if (save) save.addEventListener('click', function () { saveShorts(); });
+
+        var reload = $('#videos-reload');
+        if (reload) reload.addEventListener('click', function () { loadVideos(); });
+    }
+
+    /* Запуск после входа: нет токена — сразу настройки, иначе панель. */
+    function boot() {
+        if (!hasToken()) {
+            showScreen('setup');
+            setSetupStatus('info',
+                'Впишите токен GitHub и нажмите «Проверить подключение». ' +
+                'Без токена панель не сможет сохранять изменения.');
+        } else {
+            openPanel();
+        }
+    }
+
+    /* ========================================================================
+     *  12. СТАРТ
+     * ====================================================================== */
+
+    function main() {
+        loadSettings();
+
+        if (initGate()) {
+            /* Пароль еще не введен — показываем только заслонку. */
+            showScreen('gate');
+        } else {
+            /* Уже входили в этой вкладке браузера. */
+            boot();
+        }
+
+        initSetup();
+        initPanel();
+    }
+
+    /*
+     * Запуск только в браузере. Под Node (офлайн-тест чистых функций)
+     * объекта document нет — тогда просто отдаем экспорт ниже.
+     */
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', main);
+        } else {
+            main();
+        }
+    }
+
+    /* ========================================================================
+     *  13. ЭКСПОРТ ДЛЯ ОФЛАЙН-ТЕСТА
+     *
+     *  Это чистые функции текста: они не трогают DOM и сеть.
+     *  Браузеру module не нужен, поэтому сначала проверяем, что он есть.
+     * ====================================================================== */
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = {
+            buildCatalogText: buildCatalogText,
+            buildGalleryText: buildGalleryText,
+            replaceShortsBlock: replaceShortsBlock,
+            findShortsRange: findShortsRange,
+            parseShortsEntries: parseShortsEntries,
+            parseCatalogText: parseCatalogText,
+            collectSeparators: collectSeparators,
+            separatorLine: separatorLine,
+            parseGalleryText: parseGalleryText,
+            slugify: slugify,
+            uniqueId: uniqueId,
+            parseYouTubeId: parseYouTubeId,
+            seedGallery: seedGallery,
+            translit: translit,
+            normalizeDate: normalizeDate,
+            isJsSafe: isJsSafe
+        };
+    }
+
+})();
