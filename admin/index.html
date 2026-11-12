@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Переходим в панель…</title>
+    <script>
+        /*
+         * Страница-ловушка для опечаток в адресе админки.
+         *
+         * Адрес панели:  /adminpanel
+         * Но руки часто пишут: /index.html/adminpanel, /adminpanel.html,
+         * /admin, /panel, /adminpanel/index.html и так далее.
+         * Чтобы человек не видел «Not Found», мы просто перенаправляем
+         * его на правильный адрес.
+         */
+        (function () {
+            var target = '/adminpanel/';
+            try {
+                location.replace(target);
+            } catch (e) {
+                location.href = target;
+            }
+        })();
+    </script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #9ca3af;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        a { color: #1cb0c6; }
+        .box { padding: 2rem; }
+        .spin {
+            width: 1.5rem; height: 1.5rem;
+            border: 2px solid rgba(255,255,255,.2);
+            border-top-color: #1cb0c6;
+            border-radius: 50%;
+            margin: 0 auto 1.25rem;
+            animation: sp .7s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="spin"></div>
+        <p>Открываем панель управления…</p>
+        <p style="font-size:.875rem">
+            Если ничего не произошло, нажмите
+            <a href="/adminpanel/">сюда</a>.
+        </p>
+    </div>
+</body>
+</html>
