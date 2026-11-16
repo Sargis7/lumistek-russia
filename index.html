@@ -308,9 +308,13 @@
                 </button>
 
                 <!-- Лента карточек. Прокручивается свайпом на телефоне
-                     и стрелками / колесом мыши на компьютере. -->
+                     и стрелками / колесом мыши на компьютере.
+                     ВАЖНО: touch-pan-x здесь быть не должно. Он разрешает
+                     ленте забирать себе и вертикальные движения пальца —
+                     и страница перестаёт ехать вниз, пока палец лежит
+                     на карточке видео. -->
                 <div id="news-track"
-                     class="flex overflow-x-auto gap-4 md:gap-6 pb-4 snap-x snap-mandatory touch-pan-x"
+                     class="flex overflow-x-auto gap-4 md:gap-6 pb-4 snap-x snap-mandatory"
                      role="list"
                      aria-label="Последние видео Lumistek на YouTube">
                     <!-- Карточки добавляет news.js -->
