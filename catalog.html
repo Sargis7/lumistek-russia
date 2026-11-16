@@ -957,10 +957,16 @@
             //  ФОРМА ЗАЯВКИ
             // ================================================================
 
-            // ФОРМА В ТЕСТОВОМ РЕЖИМЕ — как на главной странице.
-            // Реальная отправка в Telegram закомментирована. Токен не выдуман.
-            var botToken = 'ВАШ_ТОКЕН_БОТА';
-            var chatId = 'ВАШ_CHAT_ID';
+            // Отправка заявки в Telegram. Бот и чат те же, что на главной
+            // (index.html) и в оформлении заказа (assets/js/checkout.js) —
+            // все заявки должны падать в одно место.
+            // ⚠️ Токен виден в исходнике страницы. Как вынести отправку
+            // на сервер — в "ИНСТРУКЦИЯ-подключение-бота.md".
+            var botToken = '9036359024:AAE_jBRlw-O_JtgT-ykpAHTVci-qU0MwdO8';
+            var chatId   = '-5447041065';
+
+            // Сколько ждём Telegram, прежде чем сказать «не дозвонились».
+            var LEAD_TIMEOUT_MS = 15000;
 
             function submitForm(e) {
                 e.preventDefault();
@@ -968,9 +974,17 @@
                 var btn = document.getElementById('submit-btn');
                 var status = document.getElementById('form-status');
 
-                var name = document.getElementById('form-name').value;
-                var city = document.getElementById('form-city').value;
-                var phone = document.getElementById('form-phone').value;
+                var name = document.getElementById('form-name').value.trim();
+                var city = document.getElementById('form-city').value.trim();
+                var phone = document.getElementById('form-phone').value.trim();
+
+                /* Пустые поля браузер отсекает сам (required), но пробелы он
+                   пустым значением не считает — проверяем здесь. */
+                if (!name || !city || !phone) {
+                    status.innerText = 'Заполните ФИО, город и телефон.';
+                    status.className = 'text-sm text-center mt-4 text-red-400 block';
+                    return;
+                }
 
                 var hint = document.getElementById('lead-context');
                 var context = (hint && !hint.classList.contains('hidden')) ? hint.textContent : '';
@@ -981,40 +995,66 @@
                 btn.disabled = true;
                 btn.innerText = 'Отправка...';
                 status.classList.remove('hidden');
+                status.innerText = 'Отправляем...';
+                status.className = 'text-sm text-center mt-4 text-gray-400 block';
 
-                // РЕАЛЬНАЯ ОТПРАВКА (раскомментировать, когда будут токен и chat id):
-                /*
-                fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+                /* Таймаут — чтобы кнопка не висела вечно при плохой сети. */
+                var controller = null;
+                var opts = {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id: chatId, text: text })
-                })
+                };
+                if (typeof window.AbortController === 'function') {
+                    controller = new window.AbortController();
+                    opts.signal = controller.signal;
+                }
+                var timer = window.setTimeout(function () {
+                    if (controller) controller.abort();
+                }, LEAD_TIMEOUT_MS);
+
+                window.fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', opts)
                 .then(function (response) {
-                    if (!response.ok) throw new Error('Ошибка сети');
-                    status.innerText = '✅ Заявка успешно отправлена!';
-                    status.className = 'text-sm text-center mt-4 text-green-400 block';
-                    document.getElementById('lead-form').reset();
-                    btn.innerText = 'Отправить';
-                    btn.disabled = false;
-                    setTimeout(closeModal, 2500);
+                    window.clearTimeout(timer);
+                    /* Мало проверить response.ok: Telegram отвечает 200 и на
+                       отказ, а причину кладёт в description. */
+                    return response.json().catch(function () { return {}; })
+                        .then(function (data) {
+                            if (!response.ok || !data || data.ok !== true) {
+                                throw new Error((data && data.description) || ('HTTP ' + response.status));
+                            }
+                            status.innerText = '✅ Заявка успешно отправлена! Мы свяжемся с вами.';
+                            status.className = 'text-sm text-center mt-4 text-green-400 block';
+                            document.getElementById('lead-form').reset();
+                            btn.innerText = 'Отправить';
+                            btn.disabled = false;
+                            window.setTimeout(closeModal, 2500);
+                        });
                 })
-                .catch(function () {
-                    status.innerText = '❌ Ошибка отправки. Попробуйте позже.';
+                .catch(function (err) {
+                    window.clearTimeout(timer);
+                    var d = (err && err.message) ? String(err.message) : '';
+
+                    /* Показываем причину человеческим языком — иначе непонятно,
+                       что чинить: интернет, токен или чат. */
+                    var why;
+                    if (/abort/i.test(d)) {
+                        why = 'Telegram не ответил вовремя. Проверьте интернет и попробуйте ещё раз.';
+                    } else if (/chat not found/i.test(d)) {
+                        why = 'Бот не может написать в этот чат. Проверьте ID чата.';
+                    } else if (/unauthorized/i.test(d)) {
+                        why = 'Токен бота неверный.';
+                    } else if (/Failed to fetch|NetworkError|load failed/i.test(d)) {
+                        why = 'Нет связи с Telegram. Проверьте интернет — или позвоните нам, мы оформим заявку вручную.';
+                    } else {
+                        why = 'Не удалось отправить заявку. Попробуйте позже.';
+                    }
+
+                    status.innerText = '❌ ' + why;
                     status.className = 'text-sm text-center mt-4 text-red-400 block';
                     btn.innerText = 'Отправить';
                     btn.disabled = false;
                 });
-                */
-
-                // ТЕСТОВЫЙ РЕЖИМ:
-                window.setTimeout(function () {
-                    status.innerText = '✅ Заявка успешно отправлена!';
-                    status.className = 'text-sm text-center mt-4 text-green-400 block';
-                    document.getElementById('lead-form').reset();
-                    btn.innerText = 'Отправить';
-                    btn.disabled = false;
-                    window.setTimeout(closeModal, 2500);
-                }, 1000);
             }
 
             window.submitForm = submitForm;
