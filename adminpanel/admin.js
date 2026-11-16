@@ -45,6 +45,15 @@
     var SS_AUTH = 'lum_admin_ok';
     var LS_SETTINGS = 'lumistek_admin_settings_v1';
 
+    /*
+     * «Запомнить этот браузер»: отметка о входе с датой истечения.
+     * Хранится в localStorage, поэтому переживает закрытие браузера —
+     * именно из-за этого владельцу приходилось вводить пароль каждый раз,
+     * и казалось, что не сохраняется ещё и токен.
+     */
+    var LS_TRUST = 'lumistek_admin_trust_v1';
+    var TRUST_DAYS = 30;
+
     var DEFAULT_SETTINGS = {
         owner: 'Sargis7',
         repo: 'lumistek-russia',
@@ -1199,7 +1208,17 @@
     }
 
     function saveSettings() {
-        localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings));
+        try {
+            localStorage.setItem(LS_SETTINGS, JSON.stringify(state.settings));
+            return true;
+        } catch (e) {
+            /* Приватный режим или переполненное хранилище: токен
+               останется только до перезагрузки страницы. Молча терять
+               данные нельзя — говорим прямо. */
+            toast('Браузер не даёт сохранить настройки (приватный режим?). ' +
+                'Токен будет действовать только до перезагрузки страницы.', 'err');
+            return false;
+        }
     }
 
     function hasToken() {
@@ -1330,16 +1349,47 @@
         });
     }
 
+    /* Вход уже подтверждён в этом браузере (отметка не истекла)? */
+    function hasTrust() {
+        try {
+            var raw = localStorage.getItem(LS_TRUST);
+            if (!raw) return false;
+            var exp = Number(raw);
+            if (!isFinite(exp)) return false;
+            if (Date.now() > exp) { localStorage.removeItem(LS_TRUST); return false; }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function setTrust() {
+        try {
+            localStorage.setItem(LS_TRUST, String(Date.now() + TRUST_DAYS * 864e5));
+        } catch (e) { /* приватный режим — просто входим на сессию */ }
+    }
+
+    function clearTrust() {
+        try { localStorage.removeItem(LS_TRUST); } catch (e) {}
+    }
+
     function initGate() {
         var form = $('#gate-form');
         var input = $('#gate-pass');
         var err = $('#gate-error');
         var btn = $('#gate-btn');
+        var remember = $('#gate-remember');
 
         /* Разметки нет — работаем без заслонки, чтобы панель не встала. */
         if (!form || !input || !err || !btn) return false;
 
+        /* Уже входили: в этой вкладке (sessionStorage) или в этом
+           браузере и не истёк срок отметки (localStorage). */
         if (sessionStorage.getItem(SS_AUTH) === '1') return false;
+        if (hasTrust()) {
+            sessionStorage.setItem(SS_AUTH, '1');
+            return false;
+        }
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -1353,6 +1403,8 @@
             sha256Hex(value).then(function (hash) {
                 if (hash === PASS_HASH) {
                     sessionStorage.setItem(SS_AUTH, '1');
+                    if (!remember || remember.checked) setTrust();
+                    else clearTrust();
                     input.value = '';
                     boot();
                 } else {
@@ -2832,6 +2884,9 @@
         if (logout) {
             logout.addEventListener('click', function () {
                 sessionStorage.removeItem(SS_AUTH);
+                /* «Выйти» — значит забыть и отметку о доверии,
+                   иначе следующий заход снова пустит без пароля. */
+                clearTrust();
                 state.catalog = null;
                 state.gallery = null;
                 state.configText = null;
