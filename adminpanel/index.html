@@ -220,6 +220,7 @@
             <button id="tab-products" type="button" class="tab-btn">Товары</button>
             <button id="tab-gallery"  type="button" class="tab-btn">Примеры работ</button>
             <button id="tab-videos"   type="button" class="tab-btn">Видео</button>
+            <button id="tab-offices"  type="button" class="tab-btn">Филиалы</button>
         </div>
     </header>
 
@@ -427,6 +428,103 @@
                     <button id="videos-reload" type="button" class="btn btn-ghost">Обновить</button>
                 </div>
                 <ul id="videos-live"></ul>
+            </div>
+        </section>
+
+        <!-- ============ ВКЛАДКА: ФИЛИАЛЫ ============ -->
+        <section id="view-offices" class="hidden">
+
+            <div class="flex items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Филиалы и контакты</h2>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        Телефон в шапке и подвале, список представительств.
+                        Скрытые филиалы остаются в списке, но не видны на сайте.
+                    </p>
+                </div>
+                <button id="office-add" type="button" class="btn btn-primary shrink-0">+ Добавить филиал</button>
+            </div>
+
+            <!-- Главный телефон + общий выключатель блока -->
+            <div class="card p-5 mb-6">
+                <h3 class="text-base font-semibold text-white mb-4">Общие настройки</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="office-main-phone" class="block text-xs text-gray-400 mb-1.5">
+                            Главный телефон (шапка, подвал, форма заказа)
+                        </label>
+                        <input id="office-main-phone" class="fld" dir="ltr" placeholder="+7 (991) 718-44-42">
+                        <p class="text-[11px] text-gray-500 mt-1">
+                            Он же подставляется в сообщение об ошибке заказа на странице корзины.
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1.5">Блок филиалов на сайте</label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer mt-2">
+                            <input id="office-show" type="checkbox" class="accent-brand-cyan w-4 h-4">
+                            Показывать блок в подвале
+                        </label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-5 pt-4 border-t border-white/10">
+                    <button id="office-save-common" type="button" class="btn btn-primary">Сохранить настройки</button>
+                    <span id="office-common-status" class="text-xs text-gray-500"></span>
+                </div>
+            </div>
+
+            <!-- Форма филиала -->
+            <form id="office-form" class="card p-5 mb-6 hidden">
+                <h3 id="office-form-title" class="text-base font-semibold text-white mb-2">Новый филиал</h3>
+                <p id="office-id-note" class="text-[11px] text-gray-500 font-mono mb-5"></p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="office-city" class="block text-xs text-gray-400 mb-1.5">Город</label>
+                        <input id="office-city" class="fld" placeholder="Москва">
+                    </div>
+                    <div>
+                        <label for="office-phone" class="block text-xs text-gray-400 mb-1.5">Телефон</label>
+                        <input id="office-phone" class="fld" dir="ltr" placeholder="+7 (991) 718-44-42">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                    <div>
+                        <label for="office-address" class="block text-xs text-gray-400 mb-1.5">
+                            Адрес — можно &lt;br&gt; для переноса строки
+                        </label>
+                        <textarea id="office-address" class="fld" rows="3" placeholder="Видное, Белокаменное шоссе 20&lt;br&gt;БЦ Видный"></textarea>
+                    </div>
+                    <div>
+                        <label for="office-note" class="block text-xs text-gray-400 mb-1.5">
+                            Подпись под телефоном (необязательно)
+                        </label>
+                        <input id="office-note" class="fld" placeholder="например: WhatsApp, 9:00–20:00">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                    <div>
+                        <label class="block text-xs text-gray-400 mb-1.5">Видимость</label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer mt-2">
+                            <input id="office-visible" type="checkbox" class="accent-brand-cyan w-4 h-4" checked>
+                            Показывать на сайте
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 mt-6 pt-5 border-t border-white/10">
+                    <button id="office-save" type="submit" class="btn btn-primary">Сохранить филиал</button>
+                    <button id="office-cancel" type="button" class="btn btn-ghost">Отмена</button>
+                    <span id="office-status" class="text-xs text-gray-500"></span>
+                </div>
+            </form>
+
+            <!-- Список филиалов -->
+            <div id="office-list" class="space-y-3"></div>
+
+            <div id="office-empty" class="hidden card px-4 py-12 text-center">
+                <p class="text-sm text-gray-500">Филиалов пока нет. Добавьте первый кнопкой выше.</p>
             </div>
         </section>
 

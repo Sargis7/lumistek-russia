@@ -285,55 +285,19 @@
                     <p class="text-gray-400 mb-6 max-w-md mx-auto lg:mx-0 text-sm md:text-base">
                         Lumistek — это инновационные решения в сфере антигравийных полиуретановых пленок. Мы предлагаем продукт премиум-класса, произведенный в Южной Корее.
                     </p>
-                    <a href="tel:+79917184442" class="text-2xl font-bold text-white hover:text-brand-cyan transition-colors inline-block mb-4">
+                    <a href="tel:+79917184442" data-office-phone class="text-2xl font-bold text-white hover:text-brand-cyan transition-colors inline-block mb-4">
                         +7 (991) 718-44-42
                     </a>
                 </div>
 
                 <!-- Филиалы -->
-                <div class="col-span-1 lg:col-span-9">
+                <div id="offices-section" class="col-span-1 lg:col-span-9">
                     <h4 class="text-xl font-bold mb-8 text-white text-center lg:text-left">Наши представительства</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left">
-                        <!-- Москва -->
-                        <div>
-                            <div class="flex items-center justify-center sm:justify-start mb-2">
-                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <h5 class="text-white font-bold text-lg">Москва</h5>
-                            </div>
-                            <p class="text-gray-400 text-sm mb-3">Видное, Белокаменное шоссе 20<br>БЦ Видный</p>
-                            <a href="tel:+79917184442" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (991) 718-44-42</a>
-                        </div>
-
-                        <!-- Уфа -->
-                        <div>
-                            <div class="flex items-center justify-center sm:justify-start mb-2">
-                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <h5 class="text-white font-bold text-lg">Уфа</h5>
-                            </div>
-                            <p class="text-gray-400 text-sm mb-3">Коммунистическая 116<br>БЦ Вафа</p>
-                            <a href="tel:+79373401024" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (937) 340-10-24</a>
-                        </div>
-
-                        <!-- Самара -->
-                        <div>
-                            <div class="flex items-center justify-center sm:justify-start mb-2">
-                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <h5 class="text-white font-bold text-lg">Самара</h5>
-                            </div>
-                            <p class="text-gray-400 text-sm mb-3">Московское шоссе 4а стр 1<br>БЦ Скала холл</p>
-                            <a href="tel:+79958320852" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+7 (995) 832-08-52</a>
-                        </div>
-
-                        <!-- Ереван -->
-                        <div>
-                            <div class="flex items-center justify-center sm:justify-start mb-2">
-                                <svg class="w-5 h-5 text-brand-cyan mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <h5 class="text-white font-bold text-lg">Ереван</h5>
-                            </div>
-                            <p class="text-gray-400 text-sm mb-3">ул. Арташисян, 81/1<br>&nbsp;</p>
-                            <a href="tel:+37433044410" class="text-brand-cyan hover:text-white transition-colors font-medium text-sm">+374 33 044 410</a>
-                        </div>
-                    </div>
+                    <!-- Список филиалов рисует assets/js/offices.js из offices-data.js.
+                         Правятся они в админ-панели: вкладка «Филиалы».
+                         ВАЖНО: сетка объявлена только здесь. Второй grid-обёртки быть
+                         не должно — иначе карточки ужимаются в одну колонку. -->
+                    <div id="offices-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left"></div>
                 </div>
             </div>
 
@@ -452,6 +416,8 @@
          ==================================================================== -->
     <script src="assets/js/catalog.js"></script>
     <script src="assets/js/cart.js"></script>
+    <script src="assets/js/offices-data.js"></script>
+    <script src="assets/js/offices.js"></script>
 
     <script>
         // ================================================================

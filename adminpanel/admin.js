@@ -56,6 +56,7 @@
         catalog: 'assets/js/catalog.js',
         gallery: 'assets/js/gallery.js',
         config: 'assets/js/config.js',
+        offices: 'assets/js/offices-data.js',
         news: 'news.json',
         galleryDir: 'img/gallery/',
         productDir: 'img/products/'
@@ -1179,6 +1180,8 @@
         configSha: null,
         shorts: [],             /* [{ id, title, date }] */
         news: null,             /* news.json — только чтение */
+        offices: null,          /* { mainPhone, show, offices: [...] } */
+        officeEditing: null,    /* id филиала, который сейчас в форме */
         tab: 'products',
         editing: null           /* товар, который сейчас в форме */
     };
@@ -1464,7 +1467,8 @@
     var TABS = [
         { key: 'products', btn: '#tab-products', view: '#view-products' },
         { key: 'gallery',  btn: '#tab-gallery',  view: '#view-gallery'  },
-        { key: 'videos',   btn: '#tab-videos',   view: '#view-videos'   }
+        { key: 'videos',   btn: '#tab-videos',   view: '#view-videos'   },
+        { key: 'offices',  btn: '#tab-offices',  view: '#view-offices'  }
     ];
 
     /*
@@ -1494,6 +1498,7 @@
         if (name === 'products' && !state.catalog) loadCatalog();
         if (name === 'gallery' && !state.gallery) loadGallery();
         if (name === 'videos' && !state.configText) loadVideos();
+        if (name === 'offices' && !state.offices) loadOffices();
     }
 
     /* ========================================================================
@@ -2407,6 +2412,417 @@
     }
 
     /* ========================================================================
+     *  10.5 ВКЛАДКА «ФИЛИАЛЫ»
+     *
+     *  Данные лежат в assets/js/offices-data.js в виде
+     *      window.LUMISTEK_OFFICES = { mainPhone, show, offices: [...] };
+     *
+     *  Разбираем его тем же безопасным способом, что и catalog.js:
+     *  отрезаем присваивание и вычисляем литерал без доступа к DOM.
+     *
+     *  ВАЖНО: parseOfficesText и buildOfficesText должны описывать
+     *  ОДИН И ТОТ ЖЕ набор полей. Поле, которое не печатает build,
+     *  при следующем сохранении из панели молча исчезнет.
+     *  У российского сайта язык один, поэтому cityEn/cityAr и
+     *  addressEn/addressAr здесь нет — в отличие от сайта ОАЭ.
+     * ====================================================================== */
+
+    /* Шапка файла филиалов — печатается при каждой перезаписи. */
+    function officesHeader() {
+        return [
+            '/**',
+            ' * ============================================================================',
+            ' *  LUMISTEK RUSSIA — ФИЛИАЛЫ И КОНТАКТЫ',
+            ' * ============================================================================',
+            ' *',
+            ' *  ЭТОТ ФАЙЛ ОБНОВЛЯЕТСЯ АВТОМАТИЧЕСКИ ИЗ АДМИН-ПАНЕЛИ.',
+            ' *  Руками править можно, но проще через /adminpanel/ — вкладка «Филиалы»:',
+            ' *  там есть добавить, изменить, скрыть и удалить.',
+            ' *',
+            ' *  ГЛАВНЫЙ НОМЕР (телефон в шапке и подвале) — поле mainPhone.',
+            ' *  Он же подставляется в сообщение об ошибке на странице корзины.',
+            ' *',
+            ' *  СТРУКТУРА:',
+            ' *    mainPhone  — номер компании, показывается в шапке и подвале',
+            ' *    show       — true/false: показывать ли блок филиалов вообще',
+            ' *    offices[]  — список филиалов, порядок как на сайте',
+            ' *      id       — латиницей, без пробелов, не менять после создания',
+            ' *      city     — название города',
+            ' *      address  — адрес, можно <br> для переноса строки',
+            ' *      phone    — телефон в формате +7 (XXX) XXX-XX-XX или +374 ...',
+            ' *      phoneNote — подпись под телефоном (необязательно)',
+            ' *      visible  — false: филиал скрыт на сайте, но не удалён',
+            ' *',
+            ' *  У российского сайта один язык, поэтому переводов',
+            ' *  (cityEn/cityAr, addressEn/addressAr) здесь НЕТ.',
+            ' * ============================================================================',
+            ' */',
+            ''
+        ];
+    }
+
+    /*
+     * Разбирает текст offices-data.js в модель.
+     * Возвращает { mainPhone, show, offices: [...] }.
+     */
+    function parseOfficesText(text) {
+        var src = String(text || '');
+        var at = src.indexOf('window.LUMISTEK_OFFICES');
+        if (at < 0) throw new Error('В файле offices-data.js не найдена строка window.LUMISTEK_OFFICES.');
+
+        var brace = src.indexOf('{', at);
+        if (brace < 0) throw new Error('В файле offices-data.js не найдена открывающая скобка.');
+
+        /* checkStructureBalance возвращает null, когда всё в порядке,
+           и текст ошибки — когда нет. Не путать с «истиной». */
+        var unbalanced = checkStructureBalance(src.slice(brace));
+        if (unbalanced) throw new Error('Файл offices-data.js повреждён: ' + unbalanced);
+
+        /* Берём ровно литерал объекта, обрезая «= » и «;» в конце. */
+        var depth = 0, end = -1;
+        for (var i = brace; i < src.length; i++) {
+            var ch = src[i];
+            if (ch === '{') depth++;
+            else if (ch === '}') {
+                depth--;
+                if (depth === 0) { end = i + 1; break; }
+            }
+        }
+        if (end < 0) throw new Error('В файле offices-data.js не закрывается объект.');
+
+        var data = parseJsLiteral(src.slice(brace, end));
+        if (!data || typeof data !== 'object') {
+            throw new Error('Не удалось прочитать данные филиалов.');
+        }
+
+        var offices = (data.offices || []).map(function (o) {
+            return {
+                id: o.id || '',
+                city: o.city || '',
+                address: o.address || '',
+                phone: o.phone || '',
+                phoneNote: o.phoneNote || '',
+                visible: o.visible !== false
+            };
+        });
+
+        return {
+            mainPhone: data.mainPhone || '',
+            show: data.show !== false,
+            offices: offices
+        };
+    }
+
+    /*
+     * Собирает текст offices-data.js обратно из модели.
+     * Печатает ровно те поля, что читает parseOfficesText, —
+     * иначе при следующем сохранении поле потеряется.
+     */
+    function buildOfficesText(model) {
+        var L = officesHeader();
+
+        L.push('window.LUMISTEK_OFFICES = {');
+        L.push('    mainPhone: ' + q(model.mainPhone || '') + ',');
+        L.push('    show: ' + (model.show !== false ? 'true' : 'false') + ',');
+        L.push('    offices: [');
+
+        var list = model.offices || [];
+        list.forEach(function (o, idx) {
+            var last = idx === list.length - 1;
+            L.push('        {');
+            L.push('            id: ' + q(o.id || '') + ',');
+            L.push('            city: ' + q(o.city || '') + ',');
+            L.push('            address: ' + q(o.address || '') + ',');
+            L.push('            phone: ' + q(o.phone || '') + ',');
+            L.push('            phoneNote: ' + q(o.phoneNote || '') + ',');
+            L.push('            visible: ' + (o.visible !== false ? 'true' : 'false'));
+            L.push('        }' + (last ? '' : ','));
+        });
+
+        L.push('    ]');
+        L.push('};');
+        L.push('');
+        return L.join('\n');
+    }
+
+    /* Читает файл филиалов из репозитория. */
+    function loadOffices() {
+        return readFile(PATHS.offices).then(function (res) {
+            if (!res.exists) {
+                state.offices = { mainPhone: '', show: true, offices: [] };
+                renderOffices();
+                toast('Файл филиалов ещё не создан — начали с пустого списка.', 'info');
+                return state.offices;
+            }
+            state.offices = parseOfficesText(res.text);
+            renderOffices();
+            return state.offices;
+        }).catch(function (error) {
+            toast('Не удалось прочитать филиалы: ' + (error && error.message ? error.message : error), 'err');
+            state.offices = { mainPhone: '', show: true, offices: [] };
+            renderOffices();
+            return state.offices;
+        });
+    }
+
+    /* Записывает модель в репозиторий. */
+    function saveOffices(model, message) {
+        var text = buildOfficesText(model);
+        return writeFileFresh(PATHS.offices, text, message || 'admin: обновление филиалов')
+            .then(function (res) {
+                state.offices = model;
+                renderOffices();
+                return res;
+            });
+    }
+
+    /* ========================================================================
+     *  10.6 ВКЛАДКА «ФИЛИАЛЫ» — ИНТЕРФЕЙС
+     * ====================================================================== */
+
+    function officeById(id) {
+        var list = (state.offices && state.offices.offices) || [];
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].id === id) return list[i];
+        }
+        return null;
+    }
+
+    function setVal(sel, v) {
+        var el = $(sel);
+        if (el) el.value = v == null ? '' : v;
+    }
+
+    function getVal(sel) {
+        var el = $(sel);
+        return el ? String(el.value || '').trim() : '';
+    }
+
+    function say(id, txt) {
+        var el = $('#' + id);
+        if (el) el.textContent = txt || '';
+    }
+
+    /* Рисует список филиалов под формой. */
+    function renderOffices() {
+        var box = $('#office-list');
+        var empty = $('#office-empty');
+        if (!box) return;
+
+        var model = state.offices || { mainPhone: '', show: true, offices: [] };
+
+        /* Общие поля не перебиваем, если пользователь в них печатает. */
+        var mp = $('#office-main-phone');
+        if (mp && document.activeElement !== mp) mp.value = model.mainPhone || '';
+        var sh = $('#office-show');
+        if (sh && document.activeElement !== sh) sh.checked = model.show !== false;
+
+        var list = model.offices || [];
+        if (!list.length) {
+            box.innerHTML = '';
+            if (empty) empty.classList.remove('hidden');
+            return;
+        }
+        if (empty) empty.classList.add('hidden');
+
+        box.innerHTML = list.map(function (o) {
+            var hidden = o.visible === false;
+            var pill = hidden
+                ? '<span style="background-color:#4b5563;color:#ffffff;" class="text-[10px] px-2 py-0.5 rounded-full">скрыт</span>'
+                : '<span style="background-color:#1cb0c6;color:#ffffff;" class="text-[10px] px-2 py-0.5 rounded-full">на сайте</span>';
+
+            return '<div class="card p-4 flex items-center gap-4 flex-wrap' + (hidden ? ' opacity-60' : '') + '">' +
+                '<div class="flex-grow min-w-0">' +
+                    '<div class="flex items-center gap-2 flex-wrap">' +
+                        '<span class="text-white font-medium">' + esc(o.city || o.id) + '</span>' +
+                        pill +
+                        '<span class="text-[11px] text-gray-500 font-mono">' + esc(o.id) + '</span>' +
+                    '</div>' +
+                    '<div class="text-xs text-gray-500 mt-1 truncate" dir="ltr">' + esc(o.phone || '—') + '</div>' +
+                '</div>' +
+                '<div class="flex items-center gap-2 shrink-0">' +
+                    '<button type="button" class="btn btn-ghost" data-office-edit="' + esc(o.id) + '">Изменить</button>' +
+                    '<button type="button" class="btn btn-ghost" data-office-toggle="' + esc(o.id) + '">' +
+                        (hidden ? 'Показать' : 'Скрыть') + '</button>' +
+                    '<button type="button" class="btn btn-ghost" data-office-del="' + esc(o.id) + '">Удалить</button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    /* Открывает форму: с id — редактирование, без — создание. */
+    function openOfficeForm(id) {
+        var form = $('#office-form');
+        if (!form) return;
+
+        state.officeEditing = id || null;
+        form.classList.remove('hidden');
+
+        if (id) {
+            var o = officeById(id) || {};
+            $('#office-form-title').textContent = 'Изменить филиал';
+            $('#office-id-note').textContent = 'id: ' + o.id + ' (не меняется)';
+            setVal('#office-city', o.city);
+            setVal('#office-address', o.address);
+            setVal('#office-phone', o.phone);
+            setVal('#office-note', o.phoneNote);
+            $('#office-visible').checked = o.visible !== false;
+        } else {
+            $('#office-form-title').textContent = 'Новый филиал';
+            $('#office-id-note').textContent = 'id создастся сам из названия города';
+            ['#office-city', '#office-address', '#office-phone', '#office-note']
+                .forEach(function (s) { setVal(s, ''); });
+            $('#office-visible').checked = true;
+        }
+
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* Собирает филиал из полей формы. */
+    function officeFromForm() {
+        var city = getVal('#office-city');
+        var id = state.officeEditing || slugify(translit(city));
+        if (!id) id = 'office-' + Date.now();
+
+        /* Не даём создать дубль id. */
+        if (!state.officeEditing && officeById(id)) {
+            var n = 2;
+            while (officeById(id + '-' + n)) n++;
+            id = id + '-' + n;
+        }
+
+        return {
+            id: id,
+            city: city,
+            address: getVal('#office-address'),
+            phone: getVal('#office-phone'),
+            phoneNote: getVal('#office-note'),
+            visible: $('#office-visible').checked
+        };
+    }
+
+    /* Сохранение одного филиала из формы. */
+    function saveOfficeFromForm(ev) {
+        if (ev) ev.preventDefault();
+
+        var model = state.offices || { mainPhone: '', show: true, offices: [] };
+        var list = (model.offices || []).slice();
+        var o = officeFromForm();
+
+        if (!o.city) {
+            say('office-status', 'Укажите название города.');
+            return;
+        }
+
+        var at = -1;
+        for (var i = 0; i < list.length; i++) if (list[i].id === o.id) { at = i; break; }
+        if (at >= 0) list[at] = o; else list.push(o);
+
+        var next = { mainPhone: model.mainPhone, show: model.show, offices: list };
+
+        say('office-status', 'Сохраняем…');
+        saveOffices(next, 'admin: филиал «' + o.city + '»')
+            .then(function () {
+                say('office-status', 'Сохранено. Сайт обновится через минуту.');
+                $('#office-form').classList.add('hidden');
+                state.officeEditing = null;
+                toast('Филиал сохранён.', 'ok');
+            })
+            .catch(function (e) {
+                say('office-status', 'Ошибка: ' + (e && e.message ? e.message : e));
+            });
+    }
+
+    /* Удаление филиала с подтверждением. */
+    function deleteOffice(id) {
+        var o = officeById(id);
+        if (!o) return;
+        if (!window.confirm('Удалить филиал «' + (o.city || o.id) + '»? Это действие нельзя отменить.')) return;
+
+        var model = state.offices;
+        var next = {
+            mainPhone: model.mainPhone,
+            show: model.show,
+            offices: (model.offices || []).filter(function (x) { return x.id !== id; })
+        };
+        saveOffices(next, 'admin: удалён филиал «' + (o.city || o.id) + '»')
+            .then(function () { toast('Филиал удалён.', 'ok'); })
+            .catch(function (e) { toast('Не удалось удалить: ' + (e && e.message ? e.message : e), 'err'); });
+    }
+
+    /* Быстрое скрытие/показ без открытия формы. */
+    function toggleOffice(id) {
+        var o = officeById(id);
+        if (!o) return;
+        var hidden = o.visible === false;
+        var model = state.offices;
+        var next = {
+            mainPhone: model.mainPhone,
+            show: model.show,
+            offices: (model.offices || []).map(function (x) {
+                if (x.id !== id) return x;
+                var copy = {};
+                Object.keys(x).forEach(function (k) { copy[k] = x[k]; });
+                copy.visible = hidden;   /* было скрыт -> показать, и наоборот */
+                return copy;
+            })
+        };
+        saveOffices(next, 'admin: ' + (hidden ? 'показан' : 'скрыт') + ' филиал «' + (o.city || o.id) + '»')
+            .catch(function (e) { toast('Не удалось изменить: ' + (e && e.message ? e.message : e), 'err'); });
+    }
+
+    /* Общие настройки: главный телефон + показ блока. */
+    function saveOfficeCommon() {
+        var model = state.offices || { mainPhone: '', show: true, offices: [] };
+        var next = {
+            mainPhone: getVal('#office-main-phone'),
+            show: $('#office-show').checked,
+            offices: model.offices || []
+        };
+        say('office-common-status', 'Сохраняем…');
+        saveOffices(next, 'admin: общие настройки филиалов')
+            .then(function () { say('office-common-status', 'Сохранено.'); })
+            .catch(function (e) { say('office-common-status', 'Ошибка: ' + (e && e.message ? e.message : e)); });
+    }
+
+    /* Привязка событий вкладки «Филиалы». */
+    function initOfficesTab() {
+        var add = $('#office-add');
+        if (add) add.addEventListener('click', function () { openOfficeForm(null); });
+
+        var cancel = $('#office-cancel');
+        if (cancel) cancel.addEventListener('click', function () {
+            $('#office-form').classList.add('hidden');
+            state.officeEditing = null;
+        });
+
+        var form = $('#office-form');
+        if (form) form.addEventListener('submit', saveOfficeFromForm);
+
+        var common = $('#office-save-common');
+        if (common) common.addEventListener('click', saveOfficeCommon);
+
+        /* Один делегированный обработчик на весь список. */
+        var box = $('#office-list');
+        if (box) {
+            box.addEventListener('click', function (e) {
+                var t = e.target;
+                while (t && t !== box && !t.getAttribute) t = t.parentNode;
+                if (!t || t === box) return;
+
+                var editId = t.getAttribute('data-office-edit');
+                if (editId) { openOfficeForm(editId); return; }
+
+                var toggleId = t.getAttribute('data-office-toggle');
+                if (toggleId) { toggleOffice(toggleId); return; }
+
+                var delId = t.getAttribute('data-office-del');
+                if (delId) { deleteOffice(delId); return; }
+            });
+        }
+    }
+
+    /* ========================================================================
      *  11. ЗАПУСК
      * ====================================================================== */
 
@@ -2421,6 +2837,8 @@
                 state.configText = null;
                 state.shorts = [];
                 state.news = null;
+                state.offices = null;
+                state.officeEditing = null;
                 location.reload();
             });
         }
@@ -2437,6 +2855,7 @@
         initProductsTab();
         initGalleryTab();
         initVideosTab();
+        initOfficesTab();
     }
 
     function initProductsTab() {
@@ -2669,6 +3088,8 @@
             findShortsRange: findShortsRange,
             parseShortsEntries: parseShortsEntries,
             parseCatalogText: parseCatalogText,
+            parseOfficesText: parseOfficesText,
+            buildOfficesText: buildOfficesText,
             collectSeparators: collectSeparators,
             separatorLine: separatorLine,
             parseGalleryText: parseGalleryText,
