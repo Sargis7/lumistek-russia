@@ -759,17 +759,12 @@
         }
 
         // ========================================================
-        // ❗❗❗ НАСТРОЙКА TELEGRAM БОТА ❗❗❗
-        // Те же бот и чат, что и в оформлении заказа (assets/js/checkout.js),
-        // чтобы заявки с главной и заказы из корзины падали в одно место.
-        // ⚠️ Токен виден в исходнике страницы. Подробности — в
-        // "ИНСТРУКЦИЯ-подключение-бота.md": вынести отправку на сервер.
-        const botToken = '9036359024:AAE_jBRlw-O_JtgT-ykpAHTVci-qU0MwdO8';
-        const chatId   = '-5447041065';
+        // ОТПРАВКА ЗАЯВКИ
+        // Токен бота здесь больше не хранится: он живёт в секретах
+        // Cloudflare Worker, а страница обращается к прокси по адресу
+        // из assets/js/lead-endpoint.js. Тот же прокси обслуживает
+        // и корзину (assets/js/checkout.js).
         // ========================================================
-
-        // Сколько ждём Telegram, прежде чем сказать «не дозвонились».
-        const LEAD_TIMEOUT_MS = 15000;
 
         async function submitForm(e) {
             e.preventDefault(); 
@@ -787,70 +782,28 @@
                 status.className = 'text-sm text-center mt-4 text-red-400 block';
                 return;
             }
-            
-            const text = `🔥 Новая заявка (Сайт Lumistek)!\n\n👤 ФИО: ${name}\n🏙 Город: ${city}\n📞 Телефон: ${phone}`;
 
             btn.disabled = true;
             btn.innerText = 'Отправка...';
             status.innerText = 'Отправляем...';
             status.className = 'text-sm text-center mt-4 text-gray-400 block';
 
-            /* Таймаут — чтобы кнопка не висела вечно при плохой сети. */
-            let timer = null;
-            let controller = null;
-            const opts = {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: text })
-            };
-            if (typeof window.AbortController === 'function') {
-                controller = new window.AbortController();
-                opts.signal = controller.signal;
-            }
-            timer = window.setTimeout(function () {
-                if (controller) controller.abort();
-            }, LEAD_TIMEOUT_MS);
-            
-            try {
-                const response = await fetch(
-                    `https://api.telegram.org/bot${botToken}/sendMessage`, opts
-                );
-                window.clearTimeout(timer);
+            const result = await window.sendLead({
+                name: name,
+                city: city,
+                phone: phone,
+                source: 'Сайт Lumistek'
+            });
 
-                /* Мало проверить response.ok: Telegram отвечает 200 и на
-                   отказ, а причину кладёт в description. */
-                const data = await response.json().catch(function () { return {}; });
-                if (!response.ok || !data || data.ok !== true) {
-                    throw new Error((data && data.description) || ('HTTP ' + response.status));
-                }
-
+            if (result.ok) {
                 status.innerText = '✅ Заявка успешно отправлена! Мы свяжемся с вами.';
                 status.className = 'text-sm text-center mt-4 text-green-400 block';
                 document.getElementById('lead-form').reset();
                 btn.innerText = 'Отправить';
                 btn.disabled = false;
-                setTimeout(closeModal, 2500); 
-
-            } catch (error) {
-                window.clearTimeout(timer);
-                const d = (error && error.message) ? String(error.message) : '';
-
-                /* Показываем причину человеческим языком — иначе непонятно,
-                   что чинить: интернет, токен или чат. */
-                let why;
-                if (/abort/i.test(d)) {
-                    why = 'Telegram не ответил вовремя. Проверьте интернет и попробуйте ещё раз.';
-                } else if (/chat not found/i.test(d)) {
-                    why = 'Бот не может написать в этот чат. Проверьте ID чата.';
-                } else if (/unauthorized/i.test(d)) {
-                    why = 'Токен бота неверный.';
-                } else if (/Failed to fetch|NetworkError|load failed/i.test(d)) {
-                    why = 'Нет связи с Telegram. Проверьте интернет — или позвоните нам, мы оформим заявку вручную.';
-                } else {
-                    why = 'Не удалось отправить заявку. Попробуйте позже.';
-                }
-
-                status.innerText = '❌ ' + why;
+                setTimeout(closeModal, 2500);
+            } else {
+                status.innerText = '❌ ' + window.leadErrorMessage(result.error);
                 status.className = 'text-sm text-center mt-4 text-red-400 block';
                 btn.innerText = 'Отправить';
                 btn.disabled = false;
@@ -869,6 +822,9 @@
     <script src="assets/js/offices-data.js"></script>
     <script src="assets/js/offices.js"></script>
     <script src="assets/js/cart.js"></script>
+    <!-- Модуль отправки заявок через прокси. Обязан загрузиться раньше
+         инлайнового кода страницы, который вызывает window.sendLead(). -->
+    <script src="assets/js/lead-endpoint.js"></script>
     <script>
         /* Счетчик корзины в шапке — чтобы покупатель видел, сколько уже набрал. */
         (function () {

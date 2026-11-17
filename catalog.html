@@ -418,6 +418,9 @@
     <script src="assets/js/cart.js"></script>
     <script src="assets/js/offices-data.js"></script>
     <script src="assets/js/offices.js"></script>
+    <!-- Модуль отправки заявок через прокси. Обязан загрузиться раньше
+         логики страницы, которая вызывает window.sendLead(). -->
+    <script src="assets/js/lead-endpoint.js"></script>
 
     <script>
         // ================================================================
@@ -957,16 +960,10 @@
             //  ФОРМА ЗАЯВКИ
             // ================================================================
 
-            // Отправка заявки в Telegram. Бот и чат те же, что на главной
-            // (index.html) и в оформлении заказа (assets/js/checkout.js) —
-            // все заявки должны падать в одно место.
-            // ⚠️ Токен виден в исходнике страницы. Как вынести отправку
-            // на сервер — в "ИНСТРУКЦИЯ-подключение-бота.md".
-            var botToken = '9036359024:AAE_jBRlw-O_JtgT-ykpAHTVci-qU0MwdO8';
-            var chatId   = '-5447041065';
-
-            // Сколько ждём Telegram, прежде чем сказать «не дозвонились».
-            var LEAD_TIMEOUT_MS = 15000;
+            // Отправка заявки через прокси (Cloudflare Worker).
+            // Токен бота больше не лежит в исходнике страницы: он хранится
+            // в секретах воркера, а адрес прокси — в assets/js/lead-endpoint.js.
+            // Тот же прокси обслуживает главную и оформление заказа.
 
             function submitForm(e) {
                 e.preventDefault();
@@ -986,11 +983,10 @@
                     return;
                 }
 
+                /* Товар, с карточки которого открыли форму, уходит в поле
+                   comment — воркер дописывает его в конец сообщения. */
                 var hint = document.getElementById('lead-context');
                 var context = (hint && !hint.classList.contains('hidden')) ? hint.textContent : '';
-
-                var text = '🔥 Новая заявка (Сайт Lumistek)!\n\n👤 ФИО: ' + name + '\n🏙 Город: ' + city + '\n📞 Телефон: ' + phone +
-                    (context ? '\n📦 ' + context : '');
 
                 btn.disabled = true;
                 btn.innerText = 'Отправка...';
@@ -998,62 +994,26 @@
                 status.innerText = 'Отправляем...';
                 status.className = 'text-sm text-center mt-4 text-gray-400 block';
 
-                /* Таймаут — чтобы кнопка не висела вечно при плохой сети. */
-                var controller = null;
-                var opts = {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: chatId, text: text })
-                };
-                if (typeof window.AbortController === 'function') {
-                    controller = new window.AbortController();
-                    opts.signal = controller.signal;
-                }
-                var timer = window.setTimeout(function () {
-                    if (controller) controller.abort();
-                }, LEAD_TIMEOUT_MS);
-
-                window.fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', opts)
-                .then(function (response) {
-                    window.clearTimeout(timer);
-                    /* Мало проверить response.ok: Telegram отвечает 200 и на
-                       отказ, а причину кладёт в description. */
-                    return response.json().catch(function () { return {}; })
-                        .then(function (data) {
-                            if (!response.ok || !data || data.ok !== true) {
-                                throw new Error((data && data.description) || ('HTTP ' + response.status));
-                            }
-                            status.innerText = '✅ Заявка успешно отправлена! Мы свяжемся с вами.';
-                            status.className = 'text-sm text-center mt-4 text-green-400 block';
-                            document.getElementById('lead-form').reset();
-                            btn.innerText = 'Отправить';
-                            btn.disabled = false;
-                            window.setTimeout(closeModal, 2500);
-                        });
-                })
-                .catch(function (err) {
-                    window.clearTimeout(timer);
-                    var d = (err && err.message) ? String(err.message) : '';
-
-                    /* Показываем причину человеческим языком — иначе непонятно,
-                       что чинить: интернет, токен или чат. */
-                    var why;
-                    if (/abort/i.test(d)) {
-                        why = 'Telegram не ответил вовремя. Проверьте интернет и попробуйте ещё раз.';
-                    } else if (/chat not found/i.test(d)) {
-                        why = 'Бот не может написать в этот чат. Проверьте ID чата.';
-                    } else if (/unauthorized/i.test(d)) {
-                        why = 'Токен бота неверный.';
-                    } else if (/Failed to fetch|NetworkError|load failed/i.test(d)) {
-                        why = 'Нет связи с Telegram. Проверьте интернет — или позвоните нам, мы оформим заявку вручную.';
+                window.sendLead({
+                    name: name,
+                    city: city,
+                    phone: phone,
+                    comment: context,
+                    source: 'Сайт Lumistek'
+                }).then(function (result) {
+                    if (result && result.ok) {
+                        status.innerText = '✅ Заявка успешно отправлена! Мы свяжемся с вами.';
+                        status.className = 'text-sm text-center mt-4 text-green-400 block';
+                        document.getElementById('lead-form').reset();
+                        btn.innerText = 'Отправить';
+                        btn.disabled = false;
+                        window.setTimeout(closeModal, 2500);
                     } else {
-                        why = 'Не удалось отправить заявку. Попробуйте позже.';
+                        status.innerText = '❌ ' + window.leadErrorMessage(result && result.error);
+                        status.className = 'text-sm text-center mt-4 text-red-400 block';
+                        btn.innerText = 'Отправить';
+                        btn.disabled = false;
                     }
-
-                    status.innerText = '❌ ' + why;
-                    status.className = 'text-sm text-center mt-4 text-red-400 block';
-                    btn.innerText = 'Отправить';
-                    btn.disabled = false;
                 });
             }
 

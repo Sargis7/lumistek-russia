@@ -12,34 +12,21 @@
  *  (window.LUMISTEK_CATALOG и window.LumistekCart).
  *
  * ----------------------------------------------------------------------------
- *  НАСТРОЙКА TELEGRAM — ПРОЧТИТЕ, ЭТО 2 МИНУТЫ
+ *  ОТПРАВКА ЗАКАЗОВ — ЧЕРЕЗ ПРОКСИ
  * ----------------------------------------------------------------------------
  *
- *  1. Создайте бота.
- *     Откройте Telegram, найдите @BotFather, отправьте ему /newbot.
- *     Придумайте имя и username. Он выдаст токен такого вида:
- *         123456789:AAEhBOweik6ad9r_QXMENQjcrGbqCr4-j1o
- *     Скопируйте его в TG_BOT_TOKEN ниже.
+ *  Токен Telegram-бота в этом файле НЕ хранится и в исходнике страницы
+ *  его нет. Заказ уходит на Cloudflare Worker, который держит токен
+ *  в секретах и сам зовёт api.telegram.org. Адрес воркера задан
+ *  в assets/js/lead-endpoint.js (переменная LEAD_ENDPOINT).
  *
- *  2. Узнайте chat_id.
- *     Напишите боту @userinfobot — он ответит вашим ID (число).
- *     Скопируйте его в TG_CHAT_ID ниже.
- *     Хотите, чтобы заказы падали в общий чат? Добавьте туда бота
- *     и возьмите ID группы — он начинается с -100.
- *
- *  3. ВАЖНО ПРО БЕЗОПАСНОСТЬ.
- *     Токен виден любому, кто откроет исходный код страницы
- *     (правая кнопка мыши → «Просмотр кода страницы»). Поэтому:
- *       • заведите ОТДЕЛЬНОГО бота только для заказов;
- *       • не используйте его для чего-то ещё;
- *       • если токен утёк — /revoke у @BotFather и вставьте новый.
- *     Посторонний сможет писать в этот чат от имени бота. Ничего
- *     страшнее спама он сделать не сможет, но знать об этом стоит.
- *
- *  Пока в TG_BOT_TOKEN стоит заглушка, сайт работает в ДЕМО-РЕЖИМЕ:
- *  заказ никуда не уходит, но экран «Спасибо» показывается — удобно
+ *  Пока LEAD_ENDPOINT пустой, сайт работает в ДЕМО-РЕЖИМЕ: заказ
+ *  никуда не уходит, но экран «Спасибо» показывается — удобно
  *  проверять, как всё выглядит. В демо-режиме под номером заказа
  *  появляется пометка.
+ *
+ *  Полный текст заказа передаётся воркеру в поле `message`, поэтому
+ *  форматирование сообщения в Telegram остаётся прежним.
  * ============================================================================
  */
 
@@ -48,17 +35,14 @@
     'use strict';
 
     /* ======================================================================
-     *  1. НАСТРОЙКИ — ВПИШИТЕ СВОИ ЗНАЧЕНИЯ СЮДА
+     *  1. НАСТРОЙКИ
      * ====================================================================== */
-    var TG_BOT_TOKEN = '9036359024:AAE_jBRlw-O_JtgT-ykpAHTVci-qU0MwdO8';
 
-    /* ВАЖНО: это ID ГРУППЫ «Lumistek Orders Russia».
-       У групп Telegram ID всегда отрицательный — минус в начале обязателен.
-       Именно поэтому здесь -5447041065, а не 5447041065. */
-    var TG_CHAT_ID   = '-5447041065';
+    /* Метка региона. Уходит в воркер полем `source` — по ней в Telegram
+       видно, с какого сайта пришёл заказ. Для сайта ОАЭ здесь 'UAE'. */
+    var SITE_LABEL = 'Сайт Lumistek (Россия)';
 
-    /* Сколько ждать ответа Telegram, мс. 15000 = 15 секунд. */
-    var SEND_TIMEOUT_MS = 15000;
+    /* Таймаут держит сам lead-endpoint.js (15 с), здесь он не нужен. */
 
     /* Телефон компании — показывается, если отправка не удалась.
        Берем из филиалов (mainPhone), чтобы номер правился в админке
@@ -81,14 +65,9 @@
         return Array.prototype.slice.call((root || document).querySelectorAll(sel));
     }
 
-    /* Токен заполнен и похож на настоящий? */
-    function telegramConfigured() {
-        var t = String(TG_BOT_TOKEN).trim();
-        var c = String(TG_CHAT_ID).trim();
-        if (t.indexOf('ВСТАВЬТЕ') !== -1 || c.indexOf('ВСТАВЬТЕ') !== -1) return false;
-        if (c === '') return false;
-        /* Настоящий токен: цифры, двоеточие, длинная строка. */
-        return /^\d{6,}:[A-Za-z0-9_\-]{30,}$/.test(t);
+    /* Адрес прокси задан? Если нет — работаем в демо-режиме. */
+    function proxyConfigured() {
+        return !!(window.leadEndpointReady && window.leadEndpointReady());
     }
 
     /* Номер заказа вида LM-M4K2P1-X7 — коротко и не повторяется. */
@@ -310,49 +289,19 @@
 
 
     /* ======================================================================
-     *  6. ОТПРАВКА В TELEGRAM
+     *  6. ОТПРАВКА ЗАКАЗА (через прокси)
      * ====================================================================== */
 
-    function sendToTelegram(order) {
-        var url = 'https://api.telegram.org/bot' +
-                  String(TG_BOT_TOKEN).trim() + '/sendMessage';
-
-        var body = {
-            chat_id: String(TG_CHAT_ID).trim(),
-            text: buildOrderText(order),
-            disable_web_page_preview: true
-        };
-
-        /* Таймаут — чтобы кнопка не висела вечно при плохой сети. */
-        var controller = null;
-        var opts = {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        };
-
-        if (typeof window.AbortController === 'function') {
-            controller = new window.AbortController();
-            opts.signal = controller.signal;
-        }
-
-        var timer = window.setTimeout(function () {
-            if (controller) { controller.abort(); }
-        }, SEND_TIMEOUT_MS);
-
-        return window.fetch(url, opts).then(function (res) {
-            return res.json().catch(function () { return {}; }).then(function (data) {
-                window.clearTimeout(timer);
-                if (!res.ok || !data || data.ok !== true) {
-                    var why = (data && data.description) ? data.description
-                                                         : ('HTTP ' + res.status);
-                    throw new Error(why);
-                }
-                return true;
-            });
-        }).catch(function (err) {
-            window.clearTimeout(timer);
-            throw err;
+    function sendOrder(order) {
+        return window.sendLead({
+            message: buildOrderText(order),
+            name:    order.name,
+            phone:   order.phone,
+            city:    order.city,
+            source:  SITE_LABEL
+        }).then(function (result) {
+            if (result && result.ok) { return true; }
+            throw new Error((result && result.error) || 'server_error');
         });
     }
 
@@ -360,23 +309,20 @@
     function humanSendError(err) {
         var d = (err && err.message) ? String(err.message) : '';
 
-        if (/abort/i.test(d)) {
-            return 'Telegram не ответил вовремя. Проверьте интернет и попробуйте ещё раз.';
+        if (d === 'timeout') {
+            return 'Сервер не ответил вовремя. Проверьте интернет и попробуйте ещё раз.';
         }
-        if (/chat not found/i.test(d)) {
-            return 'Бот не может написать в этот чат. Проверьте TG_CHAT_ID или напишите боту первым.';
+        if (d === 'chat_not_found') {
+            return 'Заказ не дошёл: неверно указан чат. Позвоните нам, мы оформим вручную.';
         }
-        if (/bot was blocked|user is deactivated/i.test(d)) {
-            return 'Бот заблокирован получателем. Разблокируйте бота в Telegram.';
+        if (d === 'bot_blocked') {
+            return 'Бот заблокирован получателем. Позвоните нам, мы оформим заказ вручную.';
         }
-        if (/unauthorized/i.test(d)) {
-            return 'Токен бота неверный. Проверьте TG_BOT_TOKEN.';
+        if (d === 'not_configured') {
+            return 'Отправка заказов ещё не настроена. Позвоните нам: ' + mainPhone();
         }
-        if (/not found/i.test(d) && /404/i.test(d)) {
-            return 'Токен или чат указаны неверно. Проверьте TG_BOT_TOKEN и TG_CHAT_ID.';
-        }
-        if (/Failed to fetch|NetworkError|load failed/i.test(d)) {
-            return 'Нет связи с Telegram. Проверьте интернет — или позвоните нам, мы оформим заказ вручную.';
+        if (d === 'network') {
+            return 'Нет связи с сервером. Проверьте интернет — или позвоните нам, мы оформим заказ вручную.';
         }
         return 'Не удалось отправить заказ. Позвоните нам: ' + mainPhone();
     }
@@ -464,7 +410,7 @@
             return;
         }
 
-        var configured = telegramConfigured();
+        var configured = proxyConfigured();
         setSubmitBusy(true, configured ? 'Отправляем…' : 'Отправляем… (демо)');
 
         /* Страховка: перед отправкой на экране не должно остаться
@@ -474,7 +420,7 @@
 
         var work;
         if (configured) {
-            work = sendToTelegram(order);
+            work = sendOrder(order);
         } else {
             /* Демо-режим: имитируем задержку, чтобы поведение было похожим
                на настоящую отправку. Заказ при этом никуда не уходит. */
