@@ -11,20 +11,20 @@
  *  После сохранения Railway сам пересобирает сайт (1-2 минуты),
  *  и правки видят все посетители.
  *
- *  ПАРОЛЬ ПО УМОЛЧАНИЮ:  lumistek2026
- *  Он хранится здесь в виде SHA-256-хэша (см. PASS_HASH ниже).
- *  Чтобы поменять пароль: откройте любую страницу сайта, нажмите F12
- *  (вкладка Console) и выполните:
- *      crypto.subtle.digest('SHA-256', new TextEncoder().encode('НОВЫЙ_ПАРОЛЬ'))
- *        .then(function (b) { console.log([].map.call(new Uint8Array(b),
- *            function (x) { return ('0' + x.toString(16)).slice(-2); }).join('')); });
- *  Полученную строку вставьте в PASS_HASH.
+ *  ПАРОЛЬ ЗДЕСЬ НЕ ХРАНИТСЯ. Его проверяет сервер — небольшой воркер
+ *  Cloudflare (work/admin-gate/worker.js). Он выдаёт cookie сессии,
+ *  недоступную из JavaScript, и ограничивает перебор попыток.
  *
- *  ЧЕСТНО О ЗАЩИТЕ: это НЕ настоящая защита, а просто заслонка от
- *  случайных посетителей. Страница статическая, поэтому тот, кто
- *  откроет исходный код, увидит и хэш пароля, и токен GitHub в
- *  localStorage. Не публикуйте адрес панели и не давайте токен никому.
- *  Для настоящей защиты нужен сервер — его у сайта нет.
+ *  Чтобы поменять пароль: Cloudflare → Workers → lumistek-admin-gate →
+ *  Settings → Variables and Secrets → ADMIN_PASSWORD_RU / ADMIN_PASSWORD_UAE.
+ *  Правка файла для этого больше не нужна.
+ *
+ *  Клиентская часть входа — в admin-auth.js рядом.
+ *
+ *  ЧЕСТНО О ГРАНИЦАХ: сам файл панели лежит на GitHub Pages и открыт
+ *  всем — скрыть его нельзя. Но без пароля он бесполезен, потому что
+ *  правки идут в GitHub только с вашим токеном. Токен хранится в
+ *  localStorage этого браузера и никуда не отправляется, кроме GitHub.
  *
  * ============================================================================
  */
@@ -37,22 +37,17 @@
      * ====================================================================== */
 
     /*
-     * SHA-256 от пароля 'lumistek2026'.
-     * Это ЗАВОДСКОЙ пароль — обязательно поменяйте его (инструкция выше).
+     * Локальных секретов у панели больше нет: ни пароля, ни его хэша.
+     * Вход проверяет сервер (admin-auth.js → воркер Cloudflare).
      */
-    var PASS_HASH = '1a0c84dbc63bb652b7f83b952128cbefd0d3a91402e9b8899150fedcff28ff7f';
-
-    var SS_AUTH = 'lum_admin_ok';
     var LS_SETTINGS = 'lumistek_admin_settings_v1';
 
     /*
-     * «Запомнить этот браузер»: отметка о входе с датой истечения.
-     * Хранится в localStorage, поэтому переживает закрытие браузера —
-     * именно из-за этого владельцу приходилось вводить пароль каждый раз,
-     * и казалось, что не сохраняется ещё и токен.
+     * Отметка «пароль введён в этой вкладке». Нужна только чтобы не
+     * дёргать сервер на каждом экране; настоящая сессия — серверная
+     * HttpOnly-cookie, и её здесь не видно.
      */
-    var LS_TRUST = 'lumistek_admin_trust_v1';
-    var TRUST_DAYS = 30;
+    var SS_AUTH = 'lum_admin_ok';
 
     var DEFAULT_SETTINGS = {
         owner: 'Sargis7',
@@ -1279,15 +1274,6 @@
             .finally(function () { busy(false); });
     }
 
-    function sha256Hex(text) {
-        var data = new TextEncoder().encode(text);
-        return crypto.subtle.digest('SHA-256', data).then(function (buf) {
-            return Array.prototype.map.call(new Uint8Array(buf), function (x) {
-                return ('0' + x.toString(16)).slice(-2);
-            }).join('');
-        });
-    }
-
     /* Сжимает картинку в браузере: максимум 1600 px по длинной стороне. */
     function downscaleImage(file) {
         return new Promise(function (resolve, reject) {
@@ -1348,82 +1334,84 @@
             if (el) el.classList.toggle('hidden', id !== name);
         });
     }
-
-    /* Вход уже подтверждён в этом браузере (отметка не истекла)? */
-    function hasTrust() {
-        try {
-            var raw = localStorage.getItem(LS_TRUST);
-            if (!raw) return false;
-            var exp = Number(raw);
-            if (!isFinite(exp)) return false;
-            if (Date.now() > exp) { localStorage.removeItem(LS_TRUST); return false; }
-            return true;
-        } catch (e) {
-            return false;
-        }
+    /* Понятный текст ошибки вместо кода сервера. */
+    function gateErrorText(code) {
+        if (window.LumAdminAuth) return window.LumAdminAuth.errorText(code);
+        return 'Не удалось войти. Попробуйте еще раз.';
     }
 
-    function setTrust() {
-        try {
-            localStorage.setItem(LS_TRUST, String(Date.now() + TRUST_DAYS * 864e5));
-        } catch (e) { /* приватный режим — просто входим на сессию */ }
-    }
-
-    function clearTrust() {
-        try { localStorage.removeItem(LS_TRUST); } catch (e) {}
-    }
-
+    /*
+     * Вход в панель. Пароль уходит на сервер и оттуда уже не возвращается:
+     * в ответ приходит только cookie сессии (HttpOnly).
+     *
+     * Возвращает true, если нужно показать экран пароля.
+     */
     function initGate() {
         var form = $('#gate-form');
         var input = $('#gate-pass');
         var err = $('#gate-error');
         var btn = $('#gate-btn');
-        var remember = $('#gate-remember');
 
         /* Разметки нет — работаем без заслонки, чтобы панель не встала. */
-        if (!form || !input || !err || !btn) return false;
+        if (!form || !input || !err || !btn) return Promise.resolve(false);
 
-        /* Уже входили: в этой вкладке (sessionStorage) или в этом
-           браузере и не истёк срок отметки (localStorage). */
-        if (sessionStorage.getItem(SS_AUTH) === '1') return false;
-        if (hasTrust()) {
-            sessionStorage.setItem(SS_AUTH, '1');
-            return false;
+        /* Привратник не подключён: без сервера панель всё равно не
+           соберётся, поэтому честно показываем причину, а не пустоту. */
+        if (!window.LumAdminAuth || !window.LumAdminAuth.ready()) {
+            err.textContent = 'Не настроен сервер входа (нет адреса привратника). ' +
+                'Откройте admin-auth.js и укажите ADMIN_GATE_URL.';
+            err.classList.remove('hidden');
+            return Promise.resolve(true);
         }
 
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            err.classList.add('hidden');
-            var value = input.value;
-            if (!value) return;
+        var auth = window.LumAdminAuth;
 
-            btn.disabled = true;
-            btn.textContent = 'Проверяем…';
+        /* Проверяем только серверную сессию. sessionStorage больше ничего
+           не решает — иначе достаточно было бы выставить флажок руками. */
+        return auth.session().then(function (state) {
+            if (state.auth) {
+                sessionStorage.setItem(SS_AUTH, '1');
+                return false;
+            }
 
-            sha256Hex(value).then(function (hash) {
-                if (hash === PASS_HASH) {
-                    sessionStorage.setItem(SS_AUTH, '1');
-                    if (!remember || remember.checked) setTrust();
-                    else clearTrust();
-                    input.value = '';
-                    boot();
-                } else {
-                    err.textContent = 'Неверный пароль. Попробуйте еще раз.';
-                    err.classList.remove('hidden');
-                    input.value = '';
-                    input.focus();
-                }
-            }).catch(function () {
-                err.textContent = 'Браузер не смог проверить пароль. Обновите страницу.';
+            if (state.offline) {
+                err.textContent = 'Нет связи с сервером входа. ' +
+                    'Проверьте интернет и обновите страницу.';
                 err.classList.remove('hidden');
-            }).finally(function () {
-                btn.disabled = false;
-                btn.textContent = 'Войти';
-            });
-        });
+            }
 
-        input.focus();
-        return true;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                err.classList.add('hidden');
+                var value = input.value;
+                if (!value) return;
+
+                btn.disabled = true;
+                btn.textContent = 'Проверяем…';
+
+                auth.login(value).then(function (res) {
+                    if (res.ok) {
+                        sessionStorage.setItem(SS_AUTH, '1');
+                        input.value = '';
+                        boot();
+                    } else {
+                        err.textContent = gateErrorText(res.error);
+                        err.classList.remove('hidden');
+                        input.value = '';
+                        input.focus();
+                    }
+                }).catch(function () {
+                    err.textContent = 'Сервер не смог проверить пароль. Попробуйте позже.';
+                    err.classList.remove('hidden');
+                }).finally(function () {
+                    btn.disabled = false;
+                    btn.textContent = 'Войти';
+                });
+            });
+
+            input.focus();
+            return true;
+        });
     }
 
     /* Настройки подключения — заполняем поля текущими значениями. */
@@ -2884,9 +2872,9 @@
         if (logout) {
             logout.addEventListener('click', function () {
                 sessionStorage.removeItem(SS_AUTH);
-                /* «Выйти» — значит забыть и отметку о доверии,
-                   иначе следующий заход снова пустит без пароля. */
-                clearTrust();
+                /* Гасим и серверную cookie — иначе после перезагрузки
+                   сервер снова скажет «свой» и пустит без пароля. */
+                if (window.LumAdminAuth) window.LumAdminAuth.logout();
                 state.catalog = null;
                 state.gallery = null;
                 state.configText = null;
@@ -3104,13 +3092,20 @@
     function main() {
         loadSettings();
 
-        if (initGate()) {
-            /* Пароль еще не введен — показываем только заслонку. */
+        /* Сначала держим экран пустым: пока сервер не ответил про сессию,
+           показывать панель нельзя, а заслонку — рано. */
+        showScreen('');
+
+        initGate().then(function (needGate) {
+            if (needGate) {
+                /* Пароль ещё не введён — показываем только заслонку. */
+                showScreen('gate');
+            } else {
+                boot();
+            }
+        }).catch(function () {
             showScreen('gate');
-        } else {
-            /* Уже входили в этой вкладке браузера. */
-            boot();
-        }
+        });
 
         initSetup();
         initPanel();

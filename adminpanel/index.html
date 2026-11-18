@@ -122,12 +122,8 @@
                    placeholder="Введите пароль" required>
 
             <label class="flex items-start gap-2 text-sm text-gray-400 cursor-pointer mt-4">
-                <input id="gate-remember" type="checkbox" class="accent-brand-cyan w-4 h-4 mt-0.5" checked>
-                <span>
-                    Запомнить этот браузер на 30 дней
-                    <span class="block text-[11px] text-gray-600 mt-0.5">
-                        Иначе пароль спросят заново после закрытия браузера.
-                    </span>
+                <span class="block text-[11px] text-gray-600">
+                    Сессия живёт 12 часов. Пароль проверяется на сервере — в файлах сайта его нет.
                 </span>
             </label>
 
@@ -552,6 +548,9 @@
 </div>
 
 <!-- Абсолютный путь: панель открывается и как /adminpanel, и как /adminpanel/ -->
+<!-- Вход в панель: пароль проверяет сервер. Секретов в этих файлах нет. -->
+<script>window.LUM_ADMIN_SITE = 'ru';</script>
+<script src="/adminpanel/admin-auth.js"></script>
 <script src="/adminpanel/admin.js"></script>
 </body>
 </html>
