@@ -552,13 +552,27 @@
             }
         }
 
-        /* --- 3. Новое значение лежит по своему ключу ----------------------- */
+        /* --- 3. Новое значение лежит по своему ключу -----------------------
+           expect может задавать ОДИН язык ({ key, lang, value }) или СРАЗУ
+           ДВА ({ key, ar, en }) — владелец нередко правит обе колонки за
+           одно сохранение, и тогда проверять надо обе. */
+        var expects = [];
         if (want) {
-            var got = (pa.model[want.lang] || {})[want.key];
+            if (want.lang) {
+                expects.push({ lang: want.lang, value: want.value });
+            } else {
+                if (want.ar != null) expects.push({ lang: 'ar', value: want.ar });
+                if (want.en != null) expects.push({ lang: 'en', value: want.en });
+            }
+        }
+
+        for (var ei = 0; ei < expects.length; ei++) {
+            var ex = expects[ei];
+            var got = (pa.model[ex.lang] || {})[want.key];
             if (got === undefined) {
                 problems.push(problem('value_missing',
-                    'После правки ключ «' + want.key + '» не найден в разделе ' + want.lang + '.'));
-            } else if (got !== String(want.value)) {
+                    'После правки ключ «' + want.key + '» не найден в разделе ' + ex.lang + '.'));
+            } else if (got !== String(ex.value)) {
                 problems.push(problem('value_mismatch',
                     'Значение ключа «' + want.key + '» записалось неверно: получилось ' +
                     JSON.stringify(String(got).slice(0, 60)) + '. Запись отменена.'));
@@ -575,7 +589,13 @@
             var allKeys = Object.keys(beforeModel);
             for (var ki = 0; ki < allKeys.length; ki++) {
                 var kk = allKeys[ki];
-                if (want && lg === want.lang && kk === want.key) continue;
+                /* Разрешённые изменения: тот же ключ в тех языках, которые
+                   мы сами и просили изменить. Всё остальное — сдвиг. */
+                var allowed = false;
+                for (var ai = 0; ai < expects.length; ai++) {
+                    if (lg === expects[ai].lang && kk === want.key) { allowed = true; break; }
+                }
+                if (allowed) continue;
                 if (beforeModel[kk] !== afterModel[kk]) {
                     moved++;
                     if (!movedExample) movedExample = lg + '.' + kk;
