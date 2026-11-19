@@ -559,16 +559,16 @@
         var expects = [];
         if (want) {
             if (want.lang) {
-                expects.push({ lang: want.lang, value: want.value });
+                expects.push({ lang: want.lang, value: want.value, key: want.key });
             } else {
-                if (want.ar != null) expects.push({ lang: 'ar', value: want.ar });
-                if (want.en != null) expects.push({ lang: 'en', value: want.en });
+                if (want.ar != null) expects.push({ lang: 'ar', value: want.ar, key: want.key });
+                if (want.en != null) expects.push({ lang: 'en', value: want.en, key: want.key });
             }
         }
 
         for (var ei = 0; ei < expects.length; ei++) {
             var ex = expects[ei];
-            var got = (pa.model[ex.lang] || {})[want.key];
+            var got = (pa.model[ex.lang] || {})[ex.key];
             if (got === undefined) {
                 problems.push(problem('value_missing',
                     'После правки ключ «' + want.key + '» не найден в разделе ' + ex.lang + '.'));
