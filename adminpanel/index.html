@@ -227,6 +227,7 @@
             <button id="tab-gallery"  type="button" class="tab-btn">Примеры работ</button>
             <button id="tab-videos"   type="button" class="tab-btn">Видео</button>
             <button id="tab-offices"  type="button" class="tab-btn">Филиалы</button>
+            <button id="tab-texts"    type="button" class="tab-btn">Тексты</button>
         </div>
     </header>
 
@@ -534,6 +535,120 @@
             </div>
         </section>
 
+        <!-- ============ ВКЛАДКА: ТЕКСТЫ ============ -->
+        <section id="view-texts" class="hidden">
+
+            <div class="flex items-start justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Тексты страниц</h2>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        Надписи, заголовки, подписи к картинкам и подсказки в полях.
+                        Правка меняет ровно одну строку в файле — остальное остаётся как было.
+                    </p>
+                </div>
+                <button id="texts-reload" type="button" class="btn btn-ghost shrink-0">Обновить список</button>
+            </div>
+
+            <div class="card p-4 mb-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label for="texts-page" class="block text-xs text-gray-400 mb-1.5">Страница</label>
+                        <select id="texts-page" class="fld">
+                            <option value="index">Главная — index.html</option>
+                            <option value="catalog">Каталог — catalog.html</option>
+                            <option value="cart">Корзина — cart.html</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="texts-zone" class="block text-xs text-gray-400 mb-1.5">Раздел страницы</label>
+                        <select id="texts-zone" class="fld">
+                            <option value="">Все разделы</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="texts-kind" class="block text-xs text-gray-400 mb-1.5">Тип текста</label>
+                        <select id="texts-kind" class="fld">
+                            <option value="">Все типы</option>
+                            <option value="text">Тексты на странице</option>
+                            <option value="alt">Подписи к картинкам</option>
+                            <option value="aria-label">Озвучка для незрячих</option>
+                            <option value="placeholder">Подсказки в полях</option>
+                            <option value="title">Всплывающие подсказки</option>
+                            <option value="seo">SEO (осторожно)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="texts-search" class="block text-xs text-gray-400 mb-1.5">Поиск по тексту</label>
+                        <input id="texts-search" class="fld" type="search" placeholder="например: Контроль качества">
+                    </div>
+                </div>
+
+                <p id="texts-source-note" class="text-[11px] text-gray-500 mt-3 leading-relaxed">
+                    Названия товаров, новости и адреса филиалов сюда не попадают: они лежат
+                    в своих файлах и <b class="text-gray-400">редактируются во вкладке «Товары»</b>
+                    и во вкладке «Филиалы».
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+                <!-- Список -->
+                <div class="lg:col-span-3 card p-2">
+                    <div id="texts-status" class="px-3 py-2 text-xs text-gray-500"></div>
+                    <div id="texts-list" class="divide-y divide-white/5 max-h-[62vh] overflow-y-auto"></div>
+                    <div id="texts-empty" class="hidden px-4 py-12 text-center">
+                        <p class="text-sm text-gray-500">Ничего не найдено. Снимите фильтры или измените поиск.</p>
+                    </div>
+                </div>
+
+                <!-- Форма правки -->
+                <div class="lg:col-span-2">
+                    <div id="texts-editor" class="card p-5">
+                        <div id="texts-editor-empty" class="py-10 text-center">
+                            <p class="text-sm text-gray-500">
+                                Выберите строку слева — здесь появится поле для правки.
+                            </p>
+                        </div>
+
+                        <div id="texts-editor-body" class="hidden">
+                            <div class="flex items-start justify-between gap-2 mb-1">
+                                <span id="texts-editor-kind" class="text-[11px] px-2 py-0.5 rounded bg-brand-cyan/15 text-brand-cyan"></span>
+                                <span id="texts-editor-where" class="text-[11px] text-gray-500 text-right"></span>
+                            </div>
+
+                            <p id="texts-editor-label" class="text-sm text-white font-medium mb-3"></p>
+
+                            <label for="texts-editor-input" class="block text-xs text-gray-400 mb-1.5">
+                                Текст — меняйте только то, что должен увидеть посетитель
+                            </label>
+                            <textarea id="texts-editor-input" class="fld" rows="6" spellcheck="false"></textarea>
+
+                            <div class="flex items-center justify-between mt-1.5">
+                                <span id="texts-editor-count" class="text-[11px] text-gray-500"></span>
+                                <button id="texts-editor-open" type="button"
+                                        class="text-[11px] text-brand-cyan hover:underline hidden">Открыть страницу на сайте</button>
+                            </div>
+
+                            <p id="texts-editor-hint" class="text-[11px] text-gray-500 mt-2 leading-relaxed"></p>
+
+                            <div id="texts-editor-problems" class="hidden mt-3 space-y-1.5"></div>
+
+                            <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-white/10">
+                                <button id="texts-save" type="button" class="btn btn-primary">Сохранить</button>
+                                <button id="texts-save-next" type="button" class="btn btn-ghost">Сохранить и дальше</button>
+                                <button id="texts-cancel" type="button" class="btn btn-ghost">Отмена</button>
+                            </div>
+
+                            <p class="text-[11px] text-gray-500 mt-3 leading-relaxed">
+                                Сохранение создаёт коммит в репозитории. Сайт обновится примерно за минуту.
+                                Отменить правку можно только на GitHub — вкладка откат не делает.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 </div>
 
@@ -551,6 +666,10 @@
 <!-- Вход в панель: пароль проверяет сервер. Секретов в этих файлах нет. -->
 <script>window.LUM_ADMIN_SITE = 'ru';</script>
 <script src="/adminpanel/admin-auth.js"></script>
+<!-- Ядро вкладки «Тексты». Подключается ПЕРЕД admin.js: иначе
+     window.LUMISTEK_TEXTS не будет определён и вкладка упадёт молча. -->
+<script src="/adminpanel/texts.js"></script>
+<script src="/adminpanel/texts-i18n.js"></script>
 <script src="/adminpanel/admin.js"></script>
 </body>
 </html>
